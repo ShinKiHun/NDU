@@ -335,18 +335,18 @@ function renderEah() {
       ylabel = "E<sub>above hull</sub> (eV/atom)";
     }
 
-    // hull dashed line — only for E_form (otherwise it's flat or zero)
-    if (metric === "E_form") {
+    // hull dashed line — drawn on the metric being plotted
+    // (E_form: lower hull of E_form; E_mix: lower hull of E_mix; EAH: hull is y=0 by definition)
+    if (metric !== "EAH") {
+      const ptsM = sd.comps.map((c, i) => ({ x: c.x, y: ys[i], raw: c }));
+      const hullM = lowerHull(ptsM).map(i => ptsM[i]);
       traces.push({
         type: "scatter", mode: "lines", name: `${sz} hull`,
-        x: hullPts.map(p => p.x),
-        y: hullPts.map(p => p.y),
+        x: hullM.map(p => p.x),
+        y: hullM.map(p => p.y),
         line: { color: color, width: 1.5, dash: "dash" },
         showlegend: false, hoverinfo: "skip",
       });
-    }
-    if (metric === "E_mix") {
-      // baseline 0 reference per size only once
     }
 
     traces.push({
@@ -423,13 +423,14 @@ function initFes() {
     });
   });
 
+  // pair filter: required (no "all"), default first pair → 5 thumbs per page
   const seg = document.querySelector("#fes-pair-seg");
-  makeSeg(seg, [{ value: "all", label: "all" }, ...DATA.meta.pairs.map(p => {
+  STATE.fes_pair = DATA.meta.pairs[0];
+  makeSeg(seg, DATA.meta.pairs.map(p => {
     const [a, b] = pairElems(p);
     return { value: p, label: `${a}${b}` };
-  })], "all", v => { STATE.fes_pair = v; renderFes(); });
+  }), STATE.fes_pair, v => { STATE.fes_pair = v; renderFes(); });
 
-  STATE.fes_pair = "all";
   renderFes();
 }
 
@@ -441,7 +442,7 @@ function renderFes() {
 
   let cells = [];
   Object.keys(pairs).forEach(pair => {
-    if (pairFilter !== "all" && pair !== pairFilter) return;
+    if (pair !== pairFilter) return;
     const sizes = pairs[pair];
     Object.keys(sizes).sort((a, b) => +a - +b).forEach(sz => {
       const entry = sizes[sz];
@@ -538,12 +539,22 @@ document.addEventListener("keydown", e => {
 
 // ─── 3. MD Gallery ────────────────────────────────────────────────────────
 function initMd() {
-  // build filter buttons from observed support tags
-  const tags = ["all", ...new Set(DATA.gifs.map(g => g.support).filter(Boolean))];
+  // start filtered to gas only — keeps the page calm as more clusters land later
+  STATE.md_filter = "gas";
+  // unique support tags + always include 'all' last (escape valve)
+  const observed = [...new Set(DATA.gifs.map(g => g.support).filter(Boolean))];
+  // canonical order: gas, graphene, Al2O3, freetop, sup, then anything new
+  const canonical = ["gas", "graphene", "Al2O3", "freetop", "sup"];
+  const ordered = canonical.filter(t => observed.includes(t))
+    .concat(observed.filter(t => !canonical.includes(t)));
+  const tags = [...ordered, "all"];
+
   const fbox = document.querySelector("#md-filters");
-  fbox.innerHTML = tags.map(t =>
-    `<button data-v="${t}"${t === "all" ? ' class="on"' : ""}>${t === "Al2O3" ? "Al₂O₃" : t}</button>`
-  ).join("");
+  fbox.innerHTML = tags.map(t => {
+    const label = t === "Al2O3" ? "Al₂O₃" : t;
+    const cls = t === STATE.md_filter ? ' class="on"' : "";
+    return `<button data-v="${t}"${cls}>${label}</button>`;
+  }).join("");
   fbox.querySelectorAll("button").forEach(b => {
     b.addEventListener("click", () => {
       fbox.querySelectorAll("button").forEach(x => x.classList.remove("on"));
