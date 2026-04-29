@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NDU — Nanocluster Digital Universe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+</head>
+<body>
+
+<!-- ── SVG sphere gradients (reused) ── -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="sph-orange"  cx="35%" cy="30%"><stop offset="0%" stop-color="#FFC9A8"/><stop offset="55%" stop-color="#FF6B35"/><stop offset="100%" stop-color="#7A2A0E"/></radialGradient>
+    <radialGradient id="sph-navy"    cx="35%" cy="30%"><stop offset="0%" stop-color="#7BA8DC"/><stop offset="55%" stop-color="#2A5CA8"/><stop offset="100%" stop-color="#0E2447"/></radialGradient>
+    <radialGradient id="sph-teal"    cx="35%" cy="30%"><stop offset="0%" stop-color="#88E2C8"/><stop offset="55%" stop-color="#2EA88E"/><stop offset="100%" stop-color="#0F4438"/></radialGradient>
+    <radialGradient id="sph-gold"    cx="35%" cy="30%"><stop offset="0%" stop-color="#F5DC9A"/><stop offset="55%" stop-color="#E0B040"/><stop offset="100%" stop-color="#6E5118"/></radialGradient>
+    <radialGradient id="sph-magenta" cx="35%" cy="30%"><stop offset="0%" stop-color="#E8A0C6"/><stop offset="55%" stop-color="#C04A8A"/><stop offset="100%" stop-color="#561C3C"/></radialGradient>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="square"></span>
+      <div class="brand-text">
+        <div class="brand-name">NDU</div>
+        <div class="brand-sub">Nanocluster Digital Universe</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <a href="#overview" class="active">Home</a>
+      <a href="#eah">Energy on Hull</a>
+      <a href="#fes">FES</a>
+      <a href="#md">MD Trajectories</a>
+      <a href="#methods">Methods</a>
+    </nav>
+    <a class="gh-link" href="https://github.com/ShinKiHun" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0016 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+      <span>GitHub</span>
+    </a>
+    <div class="meta-right" id="meta-right">Loading…</div>
+  </header>
+
+  <main class="main">
+
+    <!-- ── Hero ───────────────────────────────────── -->
+    <section id="overview" class="hero">
+      <span class="acronym">NANOCLUSTER · DIGITAL · UNIVERSE</span>
+      <h1>Mapping bimetallic<br>cluster phase space</h1>
+      <p class="lead">
+        NDU charts the energy landscape of bimetallic nanoclusters using metadynamics-driven
+        MLIP simulations. Composition × size × support is swept end-to-end, and each system
+        is reduced to a single number: <b style="color:var(--orange)">energy above the convex hull</b> —
+        the thermodynamic distance to the most stable mixture.
+      </p>
+      <div class="hero-stats" id="hero-stats"></div>
+      <div class="pair-grid" id="pair-grid"></div>
+    </section>
+
+    <!-- ── Energy on Hull (main) ──────────────────── -->
+    <section id="eah">
+      <div class="s-head">
+        <h2>Energy on the Convex Hull</h2>
+        <span class="tag">main result</span>
+        <span class="desc">Formation energy as a function of composition. Lower-convex-hull tangent shows the thermodynamic ground state at each x.</span>
+      </div>
+      <div class="controls" id="eah-ctrl">
+        <label>Pair</label>
+        <select id="eah-pair"></select>
+        <label style="margin-left:14px">Y-axis</label>
+        <span class="seg" id="eah-metric-seg">
+          <button class="on" data-v="E_form">E<sub>form</sub></button>
+          <button data-v="E_mix">E<sub>mix</sub></button>
+          <button data-v="EAH">E<sub>above hull</sub></button>
+        </span>
+        <label style="margin-left:14px">Sizes</label>
+        <span class="seg" id="eah-size-seg"></span>
+      </div>
+
+      <div class="eah-grid">
+        <div class="panel"><div id="eah-plot" class="plot plot-tall"></div></div>
+        <aside class="eah-side" id="eah-side">
+          <h3 id="eah-pair-name">—</h3>
+          <div class="subt" id="eah-pair-bulk">—</div>
+          <h4>Best E<sub>mix</sub> per size</h4>
+          <div id="eah-best-list"></div>
+          <h4 style="margin-top:18px">Bulk reference</h4>
+          <div id="eah-bulk-list"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ── FES Gallery ────────────────────────────── -->
+    <section id="fes">
+      <div class="s-head">
+        <h2>Free Energy Surfaces</h2>
+        <span class="tag">CV space</span>
+        <span class="desc">Q4–Q6–c<sub>n</sub> 3D bias landscapes from well-tempered metadynamics. Click a tile for detailed projections.</span>
+      </div>
+      <div class="controls" id="fes-ctrl">
+        <label>Track</label>
+        <span class="seg" id="fes-track-seg">
+          <button class="on" data-v="gas">gas</button>
+          <button data-v="graphene">graphene</button>
+          <button data-v="Al2O3">Al<sub>2</sub>O<sub>3</sub></button>
+        </span>
+        <label style="margin-left:14px">Pair</label>
+        <span class="seg" id="fes-pair-seg"></span>
+      </div>
+      <div class="gal-grid" id="fes-grid"></div>
+    </section>
+
+    <!-- ── MD Gallery ─────────────────────────────── -->
+    <section id="md">
+      <div class="s-head">
+        <h2>MD Trajectory Snapshots</h2>
+        <span class="tag">animation</span>
+        <span class="desc">Selected metadynamics trajectories rendered as GIFs. The smaller the cluster, the more time it spends visiting basins.</span>
+      </div>
+      <div class="md-filters" id="md-filters"></div>
+      <div class="md-grid" id="md-grid"></div>
+    </section>
+
+    <!-- ── Methods ────────────────────────────────── -->
+    <section id="methods">
+      <div class="s-head">
+        <h2>Workflow at a glance</h2>
+        <span class="tag">methods</span>
+      </div>
+      <div class="meth-grid">
+        <div class="meth-card">
+          <div class="step">STEP 01</div>
+          <h3>Build initial cluster</h3>
+          <p>Size-specific magic-number geometries: <code>13</code>·<code>38</code>·<code>55</code> cuboctahedra, <code>75</code> Marks decahedron, <code>147</code> cuboctahedron. Compositions sweep <code>x</code>=0 to 1 with seed-fixed random alloy ordering.</p>
+        </div>
+        <div class="meth-card">
+          <div class="step">STEP 02</div>
+          <h3>Pure-Python well-tempered metaD</h3>
+          <p>UMA-1p2-OMAT calculator drives ASE Langevin MD at size-dependent temperatures. SOAP-derived <code>Q4</code>, <code>Q6</code>, <code>c<sub>n</sub></code> form the 3D collective-variable space; well-tempered Gaussians (<code>γ</code>=10) accumulate in HILLS.</p>
+        </div>
+        <div class="meth-card">
+          <div class="step">STEP 03</div>
+          <h3>Re-relax &amp; rank</h3>
+          <p>Low-FES frames (≤ FES<sub>min</sub>+0.3 eV, 50 per system) are LBFGS-relaxed back to 0 K minima, time-averaged for finite-T mixing energy, and projected onto the lower convex hull to compute energy-above-hull.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <span>NDU · Nanocluster Digital Universe</span>
+      <span id="foot-right"></span>
+    </div>
+  </main>
+</div>
+
+<!-- ── Lightbox ──────────────────────────────────── -->
+<div class="lightbox" id="lb">
+  <div class="lb-inner">
+    <button class="lb-close" id="lb-close" aria-label="close">×</button>
+    <h3 class="lb-title" id="lb-title">—</h3>
+    <div class="lb-sub" id="lb-sub"></div>
+    <div class="lb-grid" id="lb-grid"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
