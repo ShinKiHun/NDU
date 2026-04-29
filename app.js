@@ -1,18 +1,32 @@
-/* NDU site — main interactive logic. */
+/* NDU site — main interactive logic.
+   Theme-aware: reads CSS custom properties at render time, re-renders plots
+   when [data-theme] changes on <html>. */
 
-const PALETTE = {
-  bg:      "#080c14",
-  panel:   "#0d1525",
-  card:    "#131e30",
-  cardHi:  "#1a2740",
-  orange:  "#FF6B35",
-  navy:    "#1A3A6E",
-  text:    "#E8EAF0",
-  subtext: "#7A8FAA",
-  grid:    "#192840",
-  border:  "#253550",
-};
-const SIZE_GRADIENT = ["#FF6B35", "#FF9560", "#D4A870", "#7A9EC8", "#1A3A6E"];
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+function getPalette() {
+  return {
+    bg:      cssVar("--bg")        || "#0a0a1f",
+    panel:   cssVar("--panel")     || "#14122e",
+    card:    cssVar("--card")      || "#1d1a3f",
+    cardHi:  cssVar("--card-hi")   || "#2a2554",
+    accent:  cssVar("--accent")    || "#22D3EE",
+    accent2: cssVar("--accent2")   || "#8B5CF6",
+    text:    cssVar("--text")      || "#E8EAF8",
+    subtext: cssVar("--subtext")   || "#8B86B8",
+    grid:    cssVar("--grid")      || "#26244a",
+    border:  cssVar("--border")    || "#332f5c",
+  };
+}
+function sizeGradient() {
+  // Cyan → mid-violet → deep indigo, theme-aware via accent + accent2
+  const dark = document.documentElement.getAttribute("data-theme") !== "bright";
+  return dark
+    ? ["#22D3EE", "#5BAEEC", "#8B5CF6", "#5B21B6", "#1E1B4B"]
+    : ["#0891B2", "#5B7DC0", "#7C3AED", "#5B21B6", "#1E1B4B"];
+}
+let PALETTE = getPalette();           // refreshed on theme toggle
 
 let DATA = null;
 
@@ -40,6 +54,7 @@ function main() {
   STATE.fes_pair  = DATA.meta.pairs[0];
   STATE.eah_sizes = new Set(DATA.meta.sizes);
 
+  initTheme();
   initMeta();
   initHeroStats();
   initPairGrid();
@@ -47,6 +62,28 @@ function main() {
   initFes();
   initMd();
   initNav();
+}
+
+// ─── theme toggle ─────────────────────────────────────────────────────────
+function initTheme() {
+  const saved = localStorage.getItem("ndu-theme");
+  if (saved === "bright" || saved === "dark") applyTheme(saved, false);
+  const btn = document.querySelector("#theme-toggle");
+  if (btn) btn.addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme") || "dark";
+    applyTheme(cur === "dark" ? "bright" : "dark", true);
+  });
+}
+function applyTheme(theme, rerender) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("ndu-theme", theme);
+  PALETTE = getPalette();
+  if (rerender && DATA) {
+    renderEah();
+    renderFes();
+    renderMd();
+    initPairGrid();
+  }
 }
 
 // ─── helpers ──────────────────────────────────────────────────────────────
@@ -66,9 +103,9 @@ function pairElems(pair) {
   return m && m.length >= 2 ? [m[0], m[1]] : [pair, ""];
 }
 function sizeColor(idx, total) {
-  if (total <= 1) return SIZE_GRADIENT[0];
+  if (total <= 1) return sizeGradient()[0];
   const t = idx / (total - 1);
-  return interpStops(SIZE_GRADIENT, t);
+  return interpStops(sizeGradient(), t);
 }
 function interpStops(stops, t) {
   t = Math.max(0, Math.min(1, t));
@@ -89,23 +126,26 @@ function parseHex(s) {
 }
 
 function plotlyLayout(extra = {}) {
+  const p = getPalette();
   return Object.assign({
-    paper_bgcolor: PALETTE.panel,
-    plot_bgcolor:  PALETTE.panel,
-    font: { color: PALETTE.text, family: "Inter, sans-serif", size: 12.5 },
+    paper_bgcolor: p.panel,
+    plot_bgcolor:  p.panel,
+    font: { color: p.text, family: "Inter, sans-serif", size: 12.5 },
     margin: { l: 70, r: 30, t: 30, b: 70 },
     xaxis: {
-      gridcolor: PALETTE.grid, zerolinecolor: PALETTE.border,
-      linecolor: PALETTE.border, tickcolor: PALETTE.border,
-      title: { font: { size: 13, color: PALETTE.text } },
+      gridcolor: p.grid, zerolinecolor: p.border,
+      linecolor: p.border, tickcolor: p.border,
+      tickfont: { color: p.text },
+      title: { font: { size: 13, color: p.text } },
     },
     yaxis: {
-      gridcolor: PALETTE.grid, zerolinecolor: PALETTE.border,
-      linecolor: PALETTE.border, tickcolor: PALETTE.border,
-      title: { font: { size: 13, color: PALETTE.text } },
+      gridcolor: p.grid, zerolinecolor: p.border,
+      linecolor: p.border, tickcolor: p.border,
+      tickfont: { color: p.text },
+      title: { font: { size: 13, color: p.text } },
     },
-    legend: { font: { color: PALETTE.text, size: 11 }, bgcolor: "rgba(19,30,48,0.8)", bordercolor: PALETTE.border, borderwidth: 1 },
-    hoverlabel: { bgcolor: PALETTE.cardHi, bordercolor: PALETTE.orange, font: { color: PALETTE.text, family: "JetBrains Mono, monospace", size: 12 } },
+    legend: { font: { color: p.text, size: 11 }, bgcolor: p.card, bordercolor: p.border, borderwidth: 1 },
+    hoverlabel: { bgcolor: p.cardHi, bordercolor: p.accent, font: { color: p.text, family: "JetBrains Mono, monospace", size: 12 } },
   }, extra);
 }
 const PLOTLY_CFG = { displaylogo: false, responsive: true, modeBarButtonsToRemove: ["lasso2d", "select2d", "autoScale2d"] };
@@ -416,8 +456,12 @@ function renderFes() {
 
   grid.innerHTML = cells.map(c => {
     const [a, b] = pairElems(c.pair);
-    // pick a representative thumb (extracted preferred)
-    const thumb = c.files.find(f => f.includes("extracted")) || c.files.find(f => f.includes("3d")) || c.files[0];
+    // pick a representative thumb (FES isosurface preferred — that's the actual free-energy view)
+    const thumb =
+      c.files.find(f => f === "fes_3d_fes.png" || f === "fes_3d_energy.png") ||
+      c.files.find(f => f.includes("3d")) ||
+      c.files.find(f => f.includes("extracted")) ||
+      c.files[0];
     const thumbPath = `${c.dir}/${thumb}`;
     const compTxt = c.comp ? `<span class="sub">${c.comp}</span>` : `<span class="sub">1:1</span>`;
     return `<div class="gal-cell" data-pair="${c.pair}" data-size="${c.size}" data-track="${track}" data-comp="${c.comp || ''}" data-dir="${c.dir}" data-files="${c.files.join('|')}">
@@ -461,12 +505,12 @@ function openLightbox({ pair, size, track, comp, dir, files }) {
     "fes_3d_time.png":    "3D time-evolution",
   };
   const order = [
+    "fes_3d_fes.png", "fes_3d_energy.png",
+    "fes_3d_scatter.png", "fes_3d_time.png",
     "fes_extracted.png",
     "fes_q4q6.png", "fes_2d_q4q6.png",
     "fes_q4co.png", "fes_2d_q4co.png",
     "fes_q6co.png", "fes_2d_q6co.png",
-    "fes_3d_fes.png", "fes_3d_energy.png",
-    "fes_3d_scatter.png", "fes_3d_time.png",
   ];
   const sortedFiles = files.slice().sort((x, y) => {
     const ix = order.indexOf(x); const iy = order.indexOf(y);

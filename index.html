@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,14 +12,23 @@
 </head>
 <body>
 
-<!-- ── SVG sphere gradients (reused) ── -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <radialGradient id="sph-orange"  cx="35%" cy="30%"><stop offset="0%" stop-color="#FFC9A8"/><stop offset="55%" stop-color="#FF6B35"/><stop offset="100%" stop-color="#7A2A0E"/></radialGradient>
-    <radialGradient id="sph-navy"    cx="35%" cy="30%"><stop offset="0%" stop-color="#7BA8DC"/><stop offset="55%" stop-color="#2A5CA8"/><stop offset="100%" stop-color="#0E2447"/></radialGradient>
-    <radialGradient id="sph-teal"    cx="35%" cy="30%"><stop offset="0%" stop-color="#88E2C8"/><stop offset="55%" stop-color="#2EA88E"/><stop offset="100%" stop-color="#0F4438"/></radialGradient>
-    <radialGradient id="sph-gold"    cx="35%" cy="30%"><stop offset="0%" stop-color="#F5DC9A"/><stop offset="55%" stop-color="#E0B040"/><stop offset="100%" stop-color="#6E5118"/></radialGradient>
-    <radialGradient id="sph-magenta" cx="35%" cy="30%"><stop offset="0%" stop-color="#E8A0C6"/><stop offset="55%" stop-color="#C04A8A"/><stop offset="100%" stop-color="#561C3C"/></radialGradient>
+    <radialGradient id="sph-cyan" cx="35%" cy="30%">
+      <stop offset="0%"  stop-color="#B5F2FA"/>
+      <stop offset="55%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#0E5466"/>
+    </radialGradient>
+    <radialGradient id="sph-violet" cx="35%" cy="30%">
+      <stop offset="0%"  stop-color="#D6C2FA"/>
+      <stop offset="55%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#3A1A8A"/>
+    </radialGradient>
+    <radialGradient id="sph-carbon" cx="35%" cy="30%">
+      <stop offset="0%"  stop-color="#9498A8"/>
+      <stop offset="55%" stop-color="#4A4D60"/>
+      <stop offset="100%" stop-color="#1A1B2C"/>
+    </radialGradient>
   </defs>
 </svg>
 
@@ -37,10 +46,18 @@
       <a href="#overview" class="active">Home</a>
       <a href="#eah">Energy on Hull</a>
       <a href="#fes">FES</a>
-      <a href="#md">MD Trajectories</a>
+      <a href="#md">metaMD</a>
       <a href="#methods">Methods</a>
+      <a href="#refs">References</a>
     </nav>
-    <a class="gh-link" href="https://github.com/ShinKiHun" target="_blank" rel="noopener">
+    <button class="theme-toggle" id="theme-toggle" aria-label="toggle theme">
+      <svg class="icon-moon" viewBox="0 0 16 16"><path d="M8 0a8 8 0 0 0 0 16c0-3-3-3-3-8s3-5 3-8z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 16 16">
+        <circle cx="8" cy="8" r="3.2"/>
+        <g><rect x="7.3" y="0" width="1.4" height="2.6" rx="0.7"/><rect x="7.3" y="13.4" width="1.4" height="2.6" rx="0.7"/><rect x="0" y="7.3" width="2.6" height="1.4" rx="0.7"/><rect x="13.4" y="7.3" width="2.6" height="1.4" rx="0.7"/><rect x="11.4" y="2.0" width="1.4" height="2.6" rx="0.7" transform="rotate(45 12.1 3.3)"/><rect x="3.2" y="2.0" width="1.4" height="2.6" rx="0.7" transform="rotate(-45 3.9 3.3)"/><rect x="11.4" y="11.4" width="1.4" height="2.6" rx="0.7" transform="rotate(-45 12.1 12.7)"/><rect x="3.2" y="11.4" width="1.4" height="2.6" rx="0.7" transform="rotate(45 3.9 12.7)"/></g>
+      </svg>
+    </button>
+    <a class="gh-link" href="https://github.com/ShinKiHun/NDU" target="_blank" rel="noopener">
       <svg viewBox="0 0 16 16" aria-hidden="true">
         <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0016 8c0-4.42-3.58-8-8-8z"/>
       </svg>
@@ -58,14 +75,86 @@
       <p class="lead">
         NDU charts the energy landscape of bimetallic nanoclusters using metadynamics-driven
         MLIP simulations. Composition × size × support is swept end-to-end, and each system
-        is reduced to a single number: <b style="color:var(--orange)">energy above the convex hull</b> —
+        is reduced to a single number: <b style="color:var(--accent)">energy above the convex hull</b> —
         the thermodynamic distance to the most stable mixture.
       </p>
       <div class="hero-stats" id="hero-stats"></div>
+
+      <div class="cluster-cards">
+        <div class="cluster-card">
+          <div class="cluster-svg">
+            <svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet">
+              <circle cx="124"   cy="50"   r="8" fill="url(#sph-cyan)"/>
+              <circle cx="120.8" cy="38"   r="8" fill="url(#sph-violet)"/>
+              <circle cx="112"   cy="29.2" r="8" fill="url(#sph-cyan)"/>
+              <circle cx="100"   cy="26"   r="8" fill="url(#sph-violet)"/>
+              <circle cx="88"    cy="29.2" r="8" fill="url(#sph-cyan)"/>
+              <circle cx="79.2"  cy="38"   r="8" fill="url(#sph-violet)"/>
+              <circle cx="76"    cy="50"   r="8" fill="url(#sph-cyan)"/>
+              <circle cx="79.2"  cy="62"   r="8" fill="url(#sph-violet)"/>
+              <circle cx="88"    cy="70.8" r="8" fill="url(#sph-cyan)"/>
+              <circle cx="100"   cy="74"   r="8" fill="url(#sph-violet)"/>
+              <circle cx="112"   cy="70.8" r="8" fill="url(#sph-cyan)"/>
+              <circle cx="120.8" cy="62"   r="8" fill="url(#sph-violet)"/>
+              <circle cx="112.1" cy="43"   r="11" fill="url(#sph-violet)"/>
+              <circle cx="100"   cy="36"   r="11" fill="url(#sph-cyan)"/>
+              <circle cx="87.9"  cy="43"   r="11" fill="url(#sph-violet)"/>
+              <circle cx="87.9"  cy="57"   r="11" fill="url(#sph-cyan)"/>
+              <circle cx="100"   cy="64"   r="11" fill="url(#sph-violet)"/>
+              <circle cx="112.1" cy="57"   r="11" fill="url(#sph-cyan)"/>
+              <circle cx="100" cy="50" r="14" fill="url(#sph-cyan)"/>
+            </svg>
+          </div>
+          <span class="badge">● Gas-phase</span>
+          <h3>Free cluster in vacuum</h3>
+          <p>Atoms are free to rearrange in 3D. Both elements move and the cluster explores its full configuration space.</p>
+        </div>
+
+        <div class="cluster-card">
+          <div class="cluster-svg">
+            <svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet">
+              <circle cx="12"  cy="84" r="6" fill="url(#sph-carbon)"/>
+              <circle cx="29"  cy="84" r="6" fill="url(#sph-carbon)"/>
+              <circle cx="46"  cy="84" r="6" fill="url(#sph-carbon)"/>
+              <circle cx="63"  cy="84" r="6" fill="url(#sph-carbon)"/>
+              <circle cx="80"  cy="84" r="6" fill="url(#sph-carbon)"/>
+              <circle cx="97"  cy="84" r="6" fill="url(#sph-carbon)"/>
+              <circle cx="114" cy="84" r="6" fill="url(#sph-carbon)"/>
+              <circle cx="131" cy="84" r="6" fill="url(#sph-carbon)"/>
+              <circle cx="148" cy="84" r="6" fill="url(#sph-carbon)"/>
+              <circle cx="165" cy="84" r="6" fill="url(#sph-carbon)"/>
+              <circle cx="182" cy="84" r="6" fill="url(#sph-carbon)"/>
+              <circle cx="118"   cy="38"   r="6" fill="url(#sph-cyan)"/>
+              <circle cx="115.6" cy="29"   r="6" fill="url(#sph-violet)"/>
+              <circle cx="109"   cy="22.4" r="6" fill="url(#sph-cyan)"/>
+              <circle cx="100"   cy="20"   r="6" fill="url(#sph-violet)"/>
+              <circle cx="91"    cy="22.4" r="6" fill="url(#sph-cyan)"/>
+              <circle cx="84.4"  cy="29"   r="6" fill="url(#sph-violet)"/>
+              <circle cx="82"    cy="38"   r="6" fill="url(#sph-cyan)"/>
+              <circle cx="84.4"  cy="47"   r="6" fill="url(#sph-violet)"/>
+              <circle cx="91"    cy="53.6" r="6" fill="url(#sph-cyan)"/>
+              <circle cx="100"   cy="56"   r="6" fill="url(#sph-violet)"/>
+              <circle cx="109"   cy="53.6" r="6" fill="url(#sph-cyan)"/>
+              <circle cx="115.6" cy="47"   r="6" fill="url(#sph-violet)"/>
+              <circle cx="108.7" cy="33"   r="8" fill="url(#sph-violet)"/>
+              <circle cx="100"   cy="28"   r="8" fill="url(#sph-cyan)"/>
+              <circle cx="91.3"  cy="33"   r="8" fill="url(#sph-violet)"/>
+              <circle cx="91.3"  cy="43"   r="8" fill="url(#sph-cyan)"/>
+              <circle cx="100"   cy="48"   r="8" fill="url(#sph-violet)"/>
+              <circle cx="108.7" cy="43"   r="8" fill="url(#sph-cyan)"/>
+              <circle cx="100" cy="38" r="10" fill="url(#sph-cyan)"/>
+            </svg>
+          </div>
+          <span class="badge alt">● Supported</span>
+          <h3>Cluster on a surface</h3>
+          <p>Supports (graphene, α-Al₂O₃) anchor the cluster and reshape its accessible basins through binding geometry.</p>
+        </div>
+      </div>
+
       <div class="pair-grid" id="pair-grid"></div>
     </section>
 
-    <!-- ── Energy on Hull (main) ──────────────────── -->
+    <!-- ── Energy on Hull ──────────────────────────── -->
     <section id="eah">
       <div class="s-head">
         <h2>Energy on the Convex Hull</h2>
@@ -84,7 +173,6 @@
         <label style="margin-left:14px">Sizes</label>
         <span class="seg" id="eah-size-seg"></span>
       </div>
-
       <div class="eah-grid">
         <div class="panel"><div id="eah-plot" class="plot plot-tall"></div></div>
         <aside class="eah-side" id="eah-side">
@@ -98,12 +186,12 @@
       </div>
     </section>
 
-    <!-- ── FES Gallery ────────────────────────────── -->
+    <!-- ── FES ─────────────────────────────────────── -->
     <section id="fes">
       <div class="s-head">
         <h2>Free Energy Surfaces</h2>
-        <span class="tag">CV space</span>
-        <span class="desc">Q4–Q6–c<sub>n</sub> 3D bias landscapes from well-tempered metadynamics. Click a tile for detailed projections.</span>
+        <span class="tag">FES (Q4 · Q6 · c<sub>n</sub>)</span>
+        <span class="desc">3D well-tempered metaD landscapes. Click a tile for projections and CV trajectory views.</span>
       </div>
       <div class="controls" id="fes-ctrl">
         <label>Track</label>
@@ -118,40 +206,169 @@
       <div class="gal-grid" id="fes-grid"></div>
     </section>
 
-    <!-- ── MD Gallery ─────────────────────────────── -->
+    <!-- ── metaMD ──────────────────────────────────── -->
     <section id="md">
       <div class="s-head">
-        <h2>MD Trajectory Snapshots</h2>
-        <span class="tag">animation</span>
-        <span class="desc">Selected metadynamics trajectories rendered as GIFs. The smaller the cluster, the more time it spends visiting basins.</span>
+        <h2>Well-tempered Metadynamics Trajectories</h2>
+        <span class="tag">metaMD · animation</span>
+        <span class="desc">Trajectories driven by an accumulated Gaussian bias. The smaller the cluster, the more time it spends visiting basins before being pushed out.</span>
       </div>
       <div class="md-filters" id="md-filters"></div>
       <div class="md-grid" id="md-grid"></div>
     </section>
 
-    <!-- ── Methods ────────────────────────────────── -->
+    <!-- ── Methods ─────────────────────────────────── -->
     <section id="methods">
       <div class="s-head">
-        <h2>Workflow at a glance</h2>
-        <span class="tag">methods</span>
+        <h2>Theory &amp; Methods</h2>
+        <span class="tag">how it works</span>
       </div>
-      <div class="meth-grid">
-        <div class="meth-card">
-          <div class="step">STEP 01</div>
-          <h3>Build initial cluster</h3>
-          <p>Size-specific magic-number geometries: <code>13</code>·<code>38</code>·<code>55</code> cuboctahedra, <code>75</code> Marks decahedron, <code>147</code> cuboctahedron. Compositions sweep <code>x</code>=0 to 1 with seed-fixed random alloy ordering.</p>
+      <div class="theory-grid">
+
+        <div class="theory-card">
+          <div class="num">01<small>METAD</small></div>
+          <div>
+            <h3>Well-tempered metadynamics</h3>
+            <p>
+              An MLIP-driven Langevin MD samples the cluster at a finite temperature.
+              Every <code style="color:var(--accent)">PACE</code> steps a Gaussian is deposited at the current
+              <b>collective-variable</b> point <code style="color:var(--accent)">s(t)</code>, building up
+              a history-dependent bias <code style="color:var(--accent)">V<sub>bias</sub></code> that drives
+              the system out of every basin it has already visited.
+            </p>
+            <div class="formula">
+              <span class="lhs">V<sub>bias</sub>(s, t)</span>
+              &nbsp;=&nbsp;
+              Σ<sub>k</sub> <span class="var">h<sub>k</sub></span>
+              · exp(− ‖<span class="var">s</span> − <span class="var">s<sub>k</sub></span>‖<sup>2</sup> / 2σ<sup>2</sup>)
+            </div>
+            <p>
+              In the <b>well-tempered</b> variant the deposit height shrinks as bias accumulates,
+              guaranteeing convergence:
+            </p>
+            <div class="formula">
+              <span class="var">h<sub>k</sub></span>
+              &nbsp;=&nbsp;
+              h<sub>0</sub> · exp(− V(<span class="var">s<sub>k</sub></span>) / (γ−1) k<sub>B</sub>T)
+            </div>
+            <p>CVs used: SOAP-derived bond-order parameters <code>Q<sub>4</sub></code>, <code>Q<sub>6</sub></code> + a hetero/homo coordination ratio <code>c<sub>n</sub></code>. Bias factor γ = 10.</p>
+          </div>
         </div>
-        <div class="meth-card">
-          <div class="step">STEP 02</div>
-          <h3>Pure-Python well-tempered metaD</h3>
-          <p>UMA-1p2-OMAT calculator drives ASE Langevin MD at size-dependent temperatures. SOAP-derived <code>Q4</code>, <code>Q6</code>, <code>c<sub>n</sub></code> form the 3D collective-variable space; well-tempered Gaussians (<code>γ</code>=10) accumulate in HILLS.</p>
+
+        <div class="theory-card">
+          <div class="num">02<small>FES</small></div>
+          <div>
+            <h3>From bias to free energy</h3>
+            <p>
+              Once <b>V<sub>bias</sub></b> covers all the basins the system has explored, the
+              <b>free energy surface</b> is just the bias profile — flipped and rescaled by γ:
+            </p>
+            <div class="formula">
+              <span class="lhs">F(s)</span>
+              &nbsp;=&nbsp;
+              − V<sub>bias</sub>(s) · γ / (γ − 1)
+            </div>
+            <p>
+              Low-FES regions (≤ <code>F<sub>min</sub> + 0.3 eV</code>) are sampled to extract candidate
+              ground-state structures. Up to <b>50 frames</b> per system are LBFGS-relaxed at strict
+              tolerance (<code>fmax &lt; 0.05 eV/Å</code>) to recover their 0 K minima.
+            </p>
+          </div>
         </div>
-        <div class="meth-card">
-          <div class="step">STEP 03</div>
-          <h3>Re-relax &amp; rank</h3>
-          <p>Low-FES frames (≤ FES<sub>min</sub>+0.3 eV, 50 per system) are LBFGS-relaxed back to 0 K minima, time-averaged for finite-T mixing energy, and projected onto the lower convex hull to compute energy-above-hull.</p>
+
+        <div class="theory-card">
+          <div class="num">03<small>EOH</small></div>
+          <div>
+            <h3>Formation, mixing &amp; convex hull</h3>
+            <p>
+              Time-averaged cluster energies (skipping the first 5 ps) are converted to
+              <b>per-atom formation energy</b> against bulk references:
+            </p>
+            <div class="formula">
+              <span class="lhs">E<sub>form</sub>(x)</span>
+              &nbsp;=&nbsp;
+              ( ⟨<span class="var">E<sub>cluster</sub></span>⟩ − n<sub>A</sub>·<span class="var">E<sub>bulk</sub><sup>A</sup></span> − n<sub>B</sub>·<span class="var">E<sub>bulk</sub><sup>B</sup></span> ) / N
+            </div>
+            <p>
+              The <b>mixing energy</b> isolates the alloying signal by subtracting the linear interpolation between pure endpoints:
+            </p>
+            <div class="formula">
+              <span class="lhs">E<sub>mix</sub>(x)</span>
+              &nbsp;=&nbsp;
+              E<sub>form</sub>(x) − [ (1 − x) · E<sub>form</sub>(0) + x · E<sub>form</sub>(1) ]
+            </div>
+            <p>
+              Finally, the lower convex hull of <code>{(x, E<sub>form</sub>)}</code> is constructed across all sampled compositions; the
+              <b>energy above hull</b> is the vertical distance to that hull at each composition x:
+            </p>
+            <div class="formula">
+              <span class="lhs">E<sub>above hull</sub>(x)</span>
+              &nbsp;=&nbsp;
+              E<sub>form</sub>(x) − <span class="out">F<sub>hull</sub>(x)</span>
+            </div>
+            <p>Compositions on the hull (<code>E<sub>above hull</sub> = 0</code>) are thermodynamic ground states; everything above is metastable.</p>
+          </div>
         </div>
+
       </div>
+    </section>
+
+    <!-- ── References ──────────────────────────────── -->
+    <section id="refs">
+      <div class="s-head">
+        <h2>References</h2>
+        <span class="tag">citations</span>
+      </div>
+      <ol class="ref-list">
+        <li><span class="num">[1]</span><span>
+          <b>Tribello, G. A.; Bonomi, M.; Branduardi, D.; Camilloni, C.; Bussi, G.</b>
+          <i>PLUMED 2: New feathers for an old bird.</i>
+          Comput. Phys. Commun. <b>185</b>, 604–613 (2014).
+          &nbsp;<a href="https://doi.org/10.1016/j.cpc.2013.09.018" target="_blank" rel="noopener">doi:10.1016/j.cpc.2013.09.018</a>
+        </span></li>
+        <li><span class="num">[2]</span><span>
+          <b>Barducci, A.; Bussi, G.; Parrinello, M.</b>
+          <i>Well-tempered metadynamics: a smoothly converging and tunable free-energy method.</i>
+          Phys. Rev. Lett. <b>100</b>, 020603 (2008).
+          &nbsp;<a href="https://doi.org/10.1103/PhysRevLett.100.020603" target="_blank" rel="noopener">doi:10.1103/PhysRevLett.100.020603</a>
+        </span></li>
+        <li><span class="num">[3]</span><span>
+          <b>FAIR Chemistry team.</b>
+          <i>UMA — Universal Models for Atoms.</i> Open Catalyst &amp; OMat25 lineage,
+          release <b>uma-s-1.2-omat</b> (2025).
+          &nbsp;<a href="https://github.com/facebookresearch/fairchem" target="_blank" rel="noopener">github.com/facebookresearch/fairchem</a>
+        </span></li>
+        <li><span class="num">[4]</span><span>
+          <b>Bartók, A. P.; Kondor, R.; Csányi, G.</b>
+          <i>On representing chemical environments.</i>
+          Phys. Rev. B <b>87</b>, 184115 (2013). <i>(SOAP descriptor)</i>
+          &nbsp;<a href="https://doi.org/10.1103/PhysRevB.87.184115" target="_blank" rel="noopener">doi:10.1103/PhysRevB.87.184115</a>
+        </span></li>
+        <li><span class="num">[5]</span><span>
+          <b>Bigi, F.; Pozdnyakov, S.; Cersonsky, R.; Ceriotti, M.</b>
+          <i>featomic — atomic featurization library;</i>
+          <code>featomic-torch</code> 0.7.x.
+          &nbsp;<a href="https://github.com/metatensor/featomic" target="_blank" rel="noopener">github.com/metatensor/featomic</a>
+        </span></li>
+        <li><span class="num">[6]</span><span>
+          <b>Larsen, A. H. <i>et al.</i></b>
+          <i>The atomic simulation environment — a Python library for working with atoms.</i>
+          J. Phys. Condens. Matter <b>29</b>, 273002 (2017).
+          &nbsp;<a href="https://doi.org/10.1088/1361-648X/aa680e" target="_blank" rel="noopener">doi:10.1088/1361-648X/aa680e</a>
+        </span></li>
+        <li><span class="num">[7]</span><span>
+          <b>Atomistic Cookbook.</b>
+          <i>Driving simulations with metatomic + PLUMED.</i>
+          (Workflow recipe used in this project.)
+          &nbsp;<a href="https://atomistic-cookbook.org/examples/metatomic-plumed/metatomic-plumed.html" target="_blank" rel="noopener">atomistic-cookbook.org/examples/metatomic-plumed</a>
+        </span></li>
+        <li><span class="num">[8]</span><span>
+          <b>Wang, X.-G. <i>et al.</i></b>
+          <i>The hydroxylated α-Al<sub>2</sub>O<sub>3</sub>(0001) surface.</i>
+          Phys. Rev. Lett. <b>84</b>, 3650–3653 (2000). <i>(Al-I termination used as the alumina support model)</i>
+          &nbsp;<a href="https://doi.org/10.1103/PhysRevLett.84.3650" target="_blank" rel="noopener">doi:10.1103/PhysRevLett.84.3650</a>
+        </span></li>
+      </ol>
     </section>
 
     <div class="footer">
@@ -161,7 +378,6 @@
   </main>
 </div>
 
-<!-- ── Lightbox ──────────────────────────────────── -->
 <div class="lightbox" id="lb">
   <div class="lb-inner">
     <button class="lb-close" id="lb-close" aria-label="close">×</button>
