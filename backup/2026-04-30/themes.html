@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NDU theme previews — A / B / C</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+html, body {
+  margin:0; padding:0; background:#0a0a14; color:#e8eaf8;
+  font-family: -apple-system, "Inter", sans-serif; -webkit-font-smoothing: antialiased;
+}
+.preview-wrap {
+  display: flex; flex-direction: column; gap: 0;
+}
+.preview-bar {
+  position: sticky; top: 0; z-index: 100;
+  padding: 12px 24px;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+  border-bottom: 1px solid #2a2a4a;
+  font-family: "JetBrains Mono", monospace; font-size: 12px;
+  color: #c8d0e8; letter-spacing: 0.5px;
+}
+.preview-bar a { color: #7DF9FF; text-decoration: none; margin-right: 18px; }
+.preview-bar a:hover { color: #ffd166; }
+
+.theme-block {
+  min-height: 100vh; padding: 28px 0 60px;
+  position: relative; overflow: hidden;
+}
+.theme-label {
+  position: relative; z-index: 5;
+  max-width: 1180px; margin: 0 auto 18px; padding: 0 28px;
+  display: flex; align-items: baseline; gap: 14px;
+}
+.theme-label .badge {
+  font-family: "JetBrains Mono", monospace; font-size: 11px;
+  padding: 3px 10px; border-radius: 4px; letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.theme-label h2 { margin:0; font-size: 22px; font-weight: 700; }
+.theme-label .desc { margin-left: auto; font-size: 12px; opacity: 0.7; max-width: 540px; text-align: right; }
+
+.mock {
+  max-width: 1180px; margin: 0 auto; padding: 0 28px;
+  position: relative; z-index: 5;
+}
+
+.mock-topbar {
+  display: flex; align-items: center; gap: 22px;
+  padding: 12px 18px; border-radius: 10px;
+  margin-bottom: 28px;
+}
+.mock-topbar .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.mock-topbar .brand .square { width: 12px; height: 12px; border-radius: 3px; }
+.mock-topbar .brand .nm { font-size: 15px; }
+.mock-topbar .brand .sub { display: block; font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 0.4px; }
+.mock-topbar nav { display: flex; gap: 6px; margin: 0 auto; font-size: 12.5px; }
+.mock-topbar nav a { padding: 6px 12px; border-radius: 6px; text-decoration: none; }
+
+.mock-hero { text-align: center; margin-bottom: 36px; padding: 8px 0; }
+.mock-hero .acro {
+  display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px;
+  padding: 3px 10px; border-radius: 4px; letter-spacing: 2px; margin-bottom: 14px;
+}
+.mock-hero h1 {
+  margin: 0 0 12px; font-size: 44px; font-weight: 800; letter-spacing: -1px; line-height: 1.08;
+}
+.mock-hero p {
+  max-width: 640px; margin: 0 auto; line-height: 1.65; font-size: 14.5px; opacity: 0.85;
+}
+
+.mock-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; max-width: 740px; margin: 22px auto 30px; }
+.mock-stats .stat { padding: 14px 16px; border-radius: 10px; }
+.mock-stats .stat .v { font-family: "JetBrains Mono", monospace; font-size: 22px; font-weight: 700; }
+.mock-stats .stat .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.7; margin-top: 2px; }
+
+.mock-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; max-width: 880px; margin: 0 auto 32px; }
+.mock-card {
+  border-radius: 12px; overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform 0.18s ease;
+  cursor: pointer;
+}
+.mock-card:hover { transform: translateY(-3px); }
+.mock-card .img { aspect-ratio: 1/1; background: #0e1432; }
+.mock-card .img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mock-card .body { padding: 16px 18px 18px; }
+.mock-card .b-badge {
+  display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px;
+  padding: 3px 8px; border-radius: 4px; letter-spacing: 0.4px; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.mock-card h3 { margin: 0 0 6px; font-size: 16px; font-weight: 700; }
+.mock-card p { margin: 0; font-size: 12.5px; line-height: 1.55; opacity: 0.78; }
+
+.mock-bottom { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; max-width: 1180px; margin: 0 auto; }
+.mock-panel { padding: 18px; border-radius: 12px; }
+.mock-panel h4 { margin: 0 0 10px; font-size: 13px; font-weight: 700; letter-spacing: 0.3px; }
+.mock-panel .tag { font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 2px 7px; border-radius: 3px; margin-left: 8px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+.mini-md { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mini-md .item { border-radius: 8px; padding: 10px; }
+.mini-md .item .ph { aspect-ratio: 1.3/1; border-radius: 5px; background-size: cover; background-position: center; margin-bottom: 8px; }
+.mini-md .item .row { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; }
+.mini-md .item .nm { font-weight: 600; }
+.mini-md .item .b-badge { font-family: "JetBrains Mono", monospace; font-size: 9.5px; padding: 1px 6px; border-radius: 3px; }
+
+
+/* ════════════════════════════════════════════════════════════════════════ */
+/* Option A — Cosmic Observatory                                            */
+/* ════════════════════════════════════════════════════════════════════════ */
+#themeA {
+  --bg: #070817;
+  --surface: #0F1227;
+  --surface-hi: #161A36;
+  --border: #1F2447;
+  --text: #E8ECFF;
+  --subtext: #7B86B5;
+  --accent: #7DF9FF;
+  --accent2: #FF5BAE;
+  --accent3: #FFD166;
+  background: var(--bg); color: var(--text);
+}
+#themeA::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 1100px 700px at 12% 18%, rgba(125, 249, 255, 0.10), transparent 65%),
+    radial-gradient(ellipse 900px 560px at 88% 82%, rgba(255, 91, 174, 0.10), transparent 65%),
+    radial-gradient(ellipse 600px 420px at 60% 50%, rgba(255, 209, 102, 0.05), transparent 70%);
+}
+#themeA::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(1.2px 1.2px at 8% 12%, rgba(255,255,255,0.85), transparent),
+    radial-gradient(1px 1px at 22% 36%, rgba(255,255,255,0.65), transparent),
+    radial-gradient(1.4px 1.4px at 35% 78%, rgba(125,249,255,0.85), transparent),
+    radial-gradient(1px 1px at 51% 16%, rgba(255,255,255,0.55), transparent),
+    radial-gradient(1.6px 1.6px at 67% 64%, rgba(255,209,102,0.8), transparent),
+    radial-gradient(1px 1px at 79% 28%, rgba(255,255,255,0.75), transparent),
+    radial-gradient(1px 1px at 88% 50%, rgba(255,91,174,0.7), transparent),
+    radial-gradient(1.2px 1.2px at 14% 88%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 92% 92%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 4% 60%, rgba(125,249,255,0.55), transparent);
+  opacity: 0.85;
+}
+#themeA .theme-label .badge { background: rgba(125,249,255,0.15); color: var(--accent); }
+#themeA .mock-topbar { background: rgba(15,18,39,0.6); border: 1px solid var(--border); backdrop-filter: blur(8px); }
+#themeA .mock-topbar .brand .square { background: var(--accent); box-shadow: 0 0 0 3px rgba(125,249,255,0.18), 0 0 14px rgba(125,249,255,0.6); }
+#themeA .mock-topbar .brand .sub { color: var(--subtext); }
+#themeA .mock-topbar nav a { color: var(--subtext); }
+#themeA .mock-topbar nav a.on { color: var(--accent); background: rgba(125,249,255,0.12); }
+#themeA .mock-hero .acro { background: rgba(125,249,255,0.15); color: var(--accent); }
+#themeA .mock-hero h1 {
+  background: linear-gradient(135deg, #7DF9FF 0%, #FF5BAE 55%, #FFD166 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+#themeA .mock-hero p { color: var(--subtext); }
+#themeA .mock-stats .stat { background: var(--surface); border: 1px solid var(--border); position: relative; overflow: hidden; }
+#themeA .mock-stats .stat::before { content:""; position:absolute; left:0; top:0; right:0; height:1.5px; background: linear-gradient(90deg, var(--accent), transparent 80%); }
+#themeA .mock-stats .stat .v { color: var(--accent); }
+#themeA .mock-stats .stat .k { color: var(--subtext); }
+#themeA .mock-card { background: var(--surface); border: 1px solid var(--border); }
+#themeA .mock-card:hover { border-color: var(--accent); box-shadow: 0 0 32px rgba(125,249,255,0.15); }
+#themeA .mock-card .b-badge { background: rgba(125,249,255,0.15); color: var(--accent); }
+#themeA .mock-card .b-badge.alt { background: rgba(255,91,174,0.15); color: var(--accent2); }
+#themeA .mock-card p { color: var(--subtext); }
+#themeA .mock-panel { background: var(--surface); border: 1px solid var(--border); }
+#themeA .mock-panel h4 { color: var(--text); }
+#themeA .mock-panel .tag { background: rgba(125,249,255,0.15); color: var(--accent); }
+#themeA .mini-md .item { background: var(--surface-hi); border: 1px solid var(--border); }
+#themeA .mini-md .item .nm { color: var(--text); }
+#themeA .mini-md .item .b-badge { background: rgba(255,91,174,0.18); color: var(--accent2); }
+
+
+/* ════════════════════════════════════════════════════════════════════════ */
+/* Option B — Atomic Neon                                                   */
+/* ════════════════════════════════════════════════════════════════════════ */
+#themeB {
+  --bg: #0A0E20;
+  --surface: #10152C;
+  --surface-hi: #181F40;
+  --border: #2A3358;
+  --text: #EAF0FF;
+  --subtext: #8896C0;
+  --accent: #00F0FF;
+  --accent2: #FF2EA6;
+  --accent3: #FFE66D;
+  background: var(--bg); color: var(--text);
+}
+#themeB::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 1200px 800px at 50% 30%, black 50%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 1200px 800px at 50% 30%, black 50%, transparent 100%);
+}
+#themeB::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 700px 500px at 14% 90%, rgba(255, 46, 166, 0.15), transparent 70%),
+    radial-gradient(ellipse 700px 500px at 90% 14%, rgba(0, 240, 255, 0.13), transparent 70%);
+}
+#themeB .theme-label .badge { background: rgba(0,240,255,0.16); color: var(--accent); }
+#themeB .mock-topbar { background: rgba(16,21,44,0.7); border: 1px solid var(--border); backdrop-filter: blur(8px); }
+#themeB .mock-topbar .brand .square { background: var(--accent); box-shadow: 0 0 12px rgba(0,240,255,0.7), inset 0 0 4px rgba(255,255,255,0.5); border-radius: 2px; }
+#themeB .mock-topbar .brand .sub { color: var(--subtext); }
+#themeB .mock-topbar nav a { color: var(--subtext); }
+#themeB .mock-topbar nav a.on {
+  color: var(--accent); background: rgba(0,240,255,0.12);
+  text-shadow: 0 0 8px rgba(0,240,255,0.6);
+}
+#themeB .mock-hero .acro { background: rgba(0,240,255,0.16); color: var(--accent); border: 1px solid rgba(0,240,255,0.35); }
+#themeB .mock-hero h1 {
+  background: linear-gradient(135deg, #00F0FF 0%, #FF2EA6 50%, #FFE66D 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  filter: drop-shadow(0 0 12px rgba(0,240,255,0.25));
+}
+#themeB .mock-hero p { color: var(--subtext); }
+#themeB .mock-stats .stat { background: var(--surface); border: 1px solid var(--border); position: relative; }
+#themeB .mock-stats .stat::before { content:""; position:absolute; left:0; top:0; right:0; height:1px; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+#themeB .mock-stats .stat .v { color: var(--accent); }
+#themeB .mock-stats .stat .k { color: var(--subtext); }
+#themeB .mock-card { background: var(--surface); border: 1px solid var(--border); position: relative; }
+#themeB .mock-card:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 28px rgba(0,240,255,0.25); }
+#themeB .mock-card .b-badge { background: rgba(0,240,255,0.15); color: var(--accent); border: 1px solid rgba(0,240,255,0.3); }
+#themeB .mock-card .b-badge.alt { background: rgba(255,46,166,0.15); color: var(--accent2); border: 1px solid rgba(255,46,166,0.3); }
+#themeB .mock-card p { color: var(--subtext); }
+#themeB .mock-panel { background: var(--surface); border: 1px solid var(--border); }
+#themeB .mock-panel h4 { color: var(--text); font-family: "JetBrains Mono", monospace; }
+#themeB .mock-panel .tag { background: rgba(255,46,166,0.18); color: var(--accent2); border: 1px solid rgba(255,46,166,0.3); }
+#themeB .mini-md .item { background: var(--surface-hi); border: 1px solid var(--border); }
+#themeB .mini-md .item .nm { color: var(--text); font-family: "JetBrains Mono", monospace; }
+#themeB .mini-md .item .b-badge { background: rgba(255,230,109,0.18); color: var(--accent3); }
+
+
+/* ════════════════════════════════════════════════════════════════════════ */
+/* Option C — Quantum Atlas                                                 */
+/* ════════════════════════════════════════════════════════════════════════ */
+#themeC {
+  --bg: #0C1024;
+  --surface: #141936;
+  --surface-hi: #1C2348;
+  --border: #2A3055;
+  --text: #E4E8FA;
+  --subtext: #8993B8;
+  --accent: #9CC0FF;
+  --accent2: #C8A47E;
+  --accent3: #A5B4FC;
+  background: var(--bg); color: var(--text);
+}
+#themeC::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 1100px 700px at 50% 20%, rgba(156, 192, 255, 0.06), transparent 70%);
+}
+#themeC::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(1.4px 1.4px at 13% 22%, rgba(228,232,250,0.7), transparent),
+    radial-gradient(1px 1px at 28% 64%, rgba(228,232,250,0.5), transparent),
+    radial-gradient(1.6px 1.6px at 47% 36%, rgba(156,192,255,0.8), transparent),
+    radial-gradient(1px 1px at 64% 78%, rgba(228,232,250,0.5), transparent),
+    radial-gradient(1.3px 1.3px at 78% 18%, rgba(200,164,126,0.65), transparent),
+    radial-gradient(1px 1px at 90% 60%, rgba(228,232,250,0.4), transparent);
+  opacity: 0.6;
+}
+#themeC .theme-label .badge { background: rgba(156,192,255,0.16); color: var(--accent); }
+#themeC .mock-topbar { background: rgba(20,25,54,0.7); border: 1px solid var(--border); }
+#themeC .mock-topbar .brand .square { background: var(--accent); box-shadow: 0 0 0 3px rgba(156,192,255,0.18); }
+#themeC .mock-topbar .brand .nm { font-family: "Newsreader", serif; font-weight: 600; font-size: 17px; }
+#themeC .mock-topbar .brand .sub { color: var(--subtext); }
+#themeC .mock-topbar nav a { color: var(--subtext); }
+#themeC .mock-topbar nav a.on { color: var(--accent); background: rgba(156,192,255,0.12); }
+#themeC .mock-hero .acro { background: rgba(156,192,255,0.14); color: var(--accent); }
+#themeC .mock-hero h1 {
+  font-family: "Newsreader", serif; font-weight: 600; font-style: italic;
+  color: var(--text); letter-spacing: -0.5px;
+}
+#themeC .mock-hero h1 .em { color: var(--accent2); font-style: italic; }
+#themeC .mock-hero p { color: var(--subtext); font-size: 15px; line-height: 1.7; }
+#themeC .mock-stats .stat { background: var(--surface); border: 1px solid var(--border); }
+#themeC .mock-stats .stat .v { color: var(--accent2); font-family: "Newsreader", serif; font-weight: 600; }
+#themeC .mock-stats .stat .k { color: var(--subtext); }
+#themeC .mock-card { background: var(--surface); border: 1px solid var(--border); }
+#themeC .mock-card:hover { border-color: var(--accent); }
+#themeC .mock-card .b-badge { background: rgba(156,192,255,0.16); color: var(--accent); }
+#themeC .mock-card .b-badge.alt { background: rgba(200,164,126,0.18); color: var(--accent2); }
+#themeC .mock-card h3 { font-family: "Newsreader", serif; font-weight: 600; font-size: 17px; }
+#themeC .mock-card p { color: var(--subtext); }
+#themeC .mock-panel { background: var(--surface); border: 1px solid var(--border); }
+#themeC .mock-panel h4 { font-family: "Newsreader", serif; font-weight: 600; font-size: 15px; color: var(--text); }
+#themeC .mock-panel .tag { background: rgba(165,180,252,0.16); color: var(--accent3); }
+#themeC .mini-md .item { background: var(--surface-hi); border: 1px solid var(--border); }
+#themeC .mini-md .item .nm { color: var(--text); }
+#themeC .mini-md .item .b-badge { background: rgba(200,164,126,0.20); color: var(--accent2); }
+
+
+/* mini SVG chart common */
+.mini-chart { width: 100%; height: 220px; }
+</style>
+</head>
+<body>
+
+<div class="preview-bar">
+  THEME PREVIEW · NDU
+  &nbsp;&nbsp;&nbsp;
+  <a href="#themeA">A · Cosmic Observatory</a>
+  <a href="#themeB">B · Atomic Neon</a>
+  <a href="#themeC">C · Quantum Atlas</a>
+  &nbsp;&nbsp;&nbsp;
+  <span style="opacity:0.6">scroll vertically to compare</span>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- ── A — Cosmic Observatory ───────────────────────────────────────────── -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="theme-block" id="themeA">
+  <div class="theme-label">
+    <span class="badge">Option A</span>
+    <h2>Cosmic Observatory</h2>
+    <span class="desc">Deep void, nebula glow, star-pinpoint accents. Atoms = stars = data points.</span>
+  </div>
+
+  <div class="mock">
+    <div class="mock-topbar">
+      <div class="brand"><span class="square"></span><div><span class="nm">NDU</span><span class="sub">NANOCLUSTER · DIGITAL · UNIVERSE</span></div></div>
+      <nav><a class="on">Home</a><a>Gas-phase</a><a>Supported</a><a>Methods</a><a>References</a></nav>
+    </div>
+
+    <div class="mock-hero">
+      <span class="acro">N · D · U</span>
+      <h1>Nanocluster<br>Digital Universe</h1>
+      <p>Mapping the energy landscape of bimetallic nanoclusters with metadynamics-driven MLIP simulations — composition × size × support swept end-to-end, each system reduced to its <b style="color:var(--accent)">energy above the convex hull</b>.</p>
+
+      <div class="mock-stats">
+        <div class="stat"><div class="v">6</div><div class="k">Bimetallic pairs</div></div>
+        <div class="stat"><div class="v">5</div><div class="k">Cluster sizes</div></div>
+        <div class="stat"><div class="v">336</div><div class="k">Gas systems</div></div>
+        <div class="stat"><div class="v">3</div><div class="k">Tracks</div></div>
+      </div>
+
+      <div class="mock-cards">
+        <div class="mock-card">
+          <div class="img"><img src="../hero/cluster-gas.jpg" alt=""></div>
+          <div class="body">
+            <span class="b-badge">● Gas-phase</span>
+            <h3>Free cluster in vacuum</h3>
+            <p>Atoms are free to rearrange in 3D. The cluster explores its full configuration space.</p>
+          </div>
+        </div>
+        <div class="mock-card">
+          <div class="img"><img src="../hero/cluster-supported.jpg" alt=""></div>
+          <div class="body">
+            <span class="b-badge alt">● Supported</span>
+            <h3>Cluster on a support</h3>
+            <p>Graphene or α-Al₂O₃ anchors the cluster and reshapes its accessible basins.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mock-bottom">
+      <div class="mock-panel">
+        <h4>Energy on the Convex Hull <span class="tag">PtPd</span></h4>
+        <svg class="mini-chart" viewBox="0 0 540 220" preserveAspectRatio="none">
+          <defs>
+            <radialGradient id="ptA" cx="50%" cy="50%"><stop offset="0%" stop-color="#7DF9FF"/><stop offset="100%" stop-color="#7DF9FF" stop-opacity="0"/></radialGradient>
+          </defs>
+          <!-- grid -->
+          <g stroke="#1F2447" stroke-width="0.5">
+            <line x1="50" y1="20" x2="50" y2="200"/><line x1="50" y1="200" x2="520" y2="200"/>
+            <line x1="50" y1="65" x2="520" y2="65" stroke-dasharray="2,4"/>
+            <line x1="50" y1="110" x2="520" y2="110" stroke-dasharray="2,4"/>
+            <line x1="50" y1="155" x2="520" y2="155" stroke-dasharray="2,4"/>
+          </g>
+          <!-- size n=13 (yellow), n=55 (cyan), n=147 (pink) -->
+          <!-- hull line -->
+          <path d="M 70,180 Q 180,140 285,90 Q 380,130 510,170" stroke="#FFD166" stroke-width="2.2" fill="none" opacity="0.55"/>
+          <path d="M 70,170 Q 180,130 285,80 Q 380,115 510,160" stroke="#7DF9FF" stroke-width="2.2" fill="none" opacity="0.55"/>
+          <path d="M 70,150 Q 180,115 285,70 Q 380,100 510,140" stroke="#FF5BAE" stroke-width="2.2" fill="none" opacity="0.55"/>
+          <!-- glowing markers -->
+          <g>
+            <circle cx="70" cy="170" r="14" fill="#7DF9FF" opacity="0.18"/><circle cx="70" cy="170" r="6" fill="#7DF9FF" stroke="#070817" stroke-width="1.5"/>
+            <circle cx="170" cy="125" r="14" fill="#7DF9FF" opacity="0.18"/><circle cx="170" cy="125" r="6" fill="#7DF9FF" stroke="#070817" stroke-width="1.5"/>
+            <circle cx="285" cy="80" r="14" fill="#7DF9FF" opacity="0.18"/><circle cx="285" cy="80" r="6" fill="#7DF9FF" stroke="#070817" stroke-width="1.5"/>
+            <circle cx="395" cy="118" r="14" fill="#7DF9FF" opacity="0.18"/><circle cx="395" cy="118" r="6" fill="#7DF9FF" stroke="#070817" stroke-width="1.5"/>
+            <circle cx="510" cy="160" r="14" fill="#7DF9FF" opacity="0.18"/><circle cx="510" cy="160" r="6" fill="#7DF9FF" stroke="#070817" stroke-width="1.5"/>
+            <circle cx="120" cy="148" r="6" fill="#FFD166" stroke="#070817" stroke-width="1.5"/>
+            <circle cx="220" cy="106" r="6" fill="#FFD166" stroke="#070817" stroke-width="1.5"/>
+            <circle cx="320" cy="92" r="6" fill="#FFD166" stroke="#070817" stroke-width="1.5"/>
+            <circle cx="430" cy="135" r="6" fill="#FFD166" stroke="#070817" stroke-width="1.5"/>
+            <circle cx="100" cy="138" r="6" fill="#FF5BAE" stroke="#070817" stroke-width="1.5"/>
+            <circle cx="245" cy="86" r="6" fill="#FF5BAE" stroke="#070817" stroke-width="1.5"/>
+            <circle cx="365" cy="105" r="6" fill="#FF5BAE" stroke="#070817" stroke-width="1.5"/>
+          </g>
+          <text x="50" y="215" fill="#7B86B5" font-size="10" font-family="JetBrains Mono">x_Pt = 0</text>
+          <text x="490" y="215" fill="#7B86B5" font-size="10" font-family="JetBrains Mono">1</text>
+          <text x="14" y="115" fill="#7B86B5" font-size="10" font-family="JetBrains Mono" transform="rotate(-90 18 115)">E_form (eV/atom)</text>
+        </svg>
+      </div>
+      <div class="mock-panel">
+        <h4>metaMD <span class="tag">Al₂O₃</span></h4>
+        <div class="mini-md">
+          <div class="item"><div class="ph" style="background: linear-gradient(135deg, #1a1f3d, #2a1538);"></div><div class="row"><span class="nm">PtPd<sub>55</sub></span><span class="b-badge">freetop</span></div></div>
+          <div class="item"><div class="ph" style="background: linear-gradient(135deg, #1f2540, #382a15);"></div><div class="row"><span class="nm">AuCu<sub>147</sub></span><span class="b-badge">fix</span></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- ── B — Atomic Neon ──────────────────────────────────────────────────── -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="theme-block" id="themeB">
+  <div class="theme-label">
+    <span class="badge">Option B</span>
+    <h2>Atomic Neon</h2>
+    <span class="desc">Crystallographic grid, 80s neon glow. "Digital" pushed hardest. Loud and energetic.</span>
+  </div>
+
+  <div class="mock">
+    <div class="mock-topbar">
+      <div class="brand"><span class="square"></span><div><span class="nm">NDU</span><span class="sub">NANOCLUSTER · DIGITAL · UNIVERSE</span></div></div>
+      <nav><a class="on">Home</a><a>Gas-phase</a><a>Supported</a><a>Methods</a><a>References</a></nav>
+    </div>
+
+    <div class="mock-hero">
+      <span class="acro">▸ N · D · U</span>
+      <h1>Nanocluster<br>Digital Universe</h1>
+      <p>Mapping the energy landscape of bimetallic nanoclusters with metadynamics-driven MLIP simulations — composition × size × support swept end-to-end, each system reduced to its <b style="color:var(--accent)">energy above the convex hull</b>.</p>
+
+      <div class="mock-stats">
+        <div class="stat"><div class="v">6</div><div class="k">Bimetallic pairs</div></div>
+        <div class="stat"><div class="v">5</div><div class="k">Cluster sizes</div></div>
+        <div class="stat"><div class="v">336</div><div class="k">Gas systems</div></div>
+        <div class="stat"><div class="v">3</div><div class="k">Tracks</div></div>
+      </div>
+
+      <div class="mock-cards">
+        <div class="mock-card">
+          <div class="img"><img src="../hero/cluster-gas.jpg" alt=""></div>
+          <div class="body">
+            <span class="b-badge">● Gas-phase</span>
+            <h3>Free cluster in vacuum</h3>
+            <p>Atoms are free to rearrange in 3D. The cluster explores its full configuration space.</p>
+          </div>
+        </div>
+        <div class="mock-card">
+          <div class="img"><img src="../hero/cluster-supported.jpg" alt=""></div>
+          <div class="body">
+            <span class="b-badge alt">● Supported</span>
+            <h3>Cluster on a support</h3>
+            <p>Graphene or α-Al₂O₃ anchors the cluster and reshapes its accessible basins.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mock-bottom">
+      <div class="mock-panel">
+        <h4>Energy on the Convex Hull <span class="tag">PtPd</span></h4>
+        <svg class="mini-chart" viewBox="0 0 540 220" preserveAspectRatio="none">
+          <g stroke="rgba(0,240,255,0.10)" stroke-width="0.5">
+            <line x1="50" y1="20" x2="50" y2="200" stroke="#2A3358"/><line x1="50" y1="200" x2="520" y2="200" stroke="#2A3358"/>
+            <line x1="50" y1="65" x2="520" y2="65"/><line x1="50" y1="110" x2="520" y2="110"/><line x1="50" y1="155" x2="520" y2="155"/>
+            <line x1="155" y1="20" x2="155" y2="200"/><line x1="285" y1="20" x2="285" y2="200"/><line x1="415" y1="20" x2="415" y2="200"/>
+          </g>
+          <path d="M 70,180 Q 180,140 285,90 Q 380,130 510,170" stroke="#FFE66D" stroke-width="2" fill="none" opacity="0.6" filter="url(#glowB)"/>
+          <path d="M 70,170 Q 180,130 285,80 Q 380,115 510,160" stroke="#00F0FF" stroke-width="2" fill="none" opacity="0.6"/>
+          <path d="M 70,150 Q 180,115 285,70 Q 380,100 510,140" stroke="#FF2EA6" stroke-width="2" fill="none" opacity="0.6"/>
+          <defs>
+            <filter id="glowB"><feGaussianBlur stdDeviation="2.5"/></filter>
+          </defs>
+          <g>
+            <circle cx="70" cy="170" r="6" fill="#00F0FF"/>
+            <circle cx="170" cy="125" r="6" fill="#00F0FF"/>
+            <circle cx="285" cy="80" r="6" fill="#00F0FF"/>
+            <circle cx="395" cy="118" r="6" fill="#00F0FF"/>
+            <circle cx="510" cy="160" r="6" fill="#00F0FF"/>
+            <circle cx="120" cy="148" r="5" fill="#FFE66D"/>
+            <circle cx="220" cy="106" r="5" fill="#FFE66D"/>
+            <circle cx="320" cy="92" r="5" fill="#FFE66D"/>
+            <circle cx="430" cy="135" r="5" fill="#FFE66D"/>
+            <circle cx="100" cy="138" r="5" fill="#FF2EA6"/>
+            <circle cx="245" cy="86" r="5" fill="#FF2EA6"/>
+            <circle cx="365" cy="105" r="5" fill="#FF2EA6"/>
+          </g>
+          <text x="50" y="215" fill="#8896C0" font-size="10" font-family="JetBrains Mono">x_Pt = 0</text>
+          <text x="490" y="215" fill="#8896C0" font-size="10" font-family="JetBrains Mono">1</text>
+          <text x="14" y="115" fill="#8896C0" font-size="10" font-family="JetBrains Mono" transform="rotate(-90 18 115)">E_form (eV/atom)</text>
+        </svg>
+      </div>
+      <div class="mock-panel">
+        <h4>metaMD <span class="tag">Al₂O₃</span></h4>
+        <div class="mini-md">
+          <div class="item"><div class="ph" style="background: linear-gradient(135deg, #181f40, #4d1252);"></div><div class="row"><span class="nm">PtPd<sub>55</sub></span><span class="b-badge">freetop</span></div></div>
+          <div class="item"><div class="ph" style="background: linear-gradient(135deg, #1d2548, #4a3815);"></div><div class="row"><span class="nm">AuCu<sub>147</sub></span><span class="b-badge">fix</span></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- ── C — Quantum Atlas ────────────────────────────────────────────────── -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<section class="theme-block" id="themeC">
+  <div class="theme-label">
+    <span class="badge">Option C</span>
+    <h2>Quantum Atlas</h2>
+    <span class="desc">Subdued deep-space, italic serif title, muted blue/gold/lavender. arXiv astronomy paper feel.</span>
+  </div>
+
+  <div class="mock">
+    <div class="mock-topbar">
+      <div class="brand"><span class="square"></span><div><span class="nm">NDU</span><span class="sub">Nanocluster · Digital · Universe</span></div></div>
+      <nav><a class="on">Home</a><a>Gas-phase</a><a>Supported</a><a>Methods</a><a>References</a></nav>
+    </div>
+
+    <div class="mock-hero">
+      <span class="acro">N · D · U</span>
+      <h1>Nanocluster <span class="em">Digital</span><br>Universe</h1>
+      <p>Mapping the energy landscape of bimetallic nanoclusters with metadynamics-driven MLIP simulations — composition × size × support swept end-to-end, each system reduced to its <em style="color:var(--accent2)">energy above the convex hull</em>.</p>
+
+      <div class="mock-stats">
+        <div class="stat"><div class="v">6</div><div class="k">Bimetallic pairs</div></div>
+        <div class="stat"><div class="v">5</div><div class="k">Cluster sizes</div></div>
+        <div class="stat"><div class="v">336</div><div class="k">Gas systems</div></div>
+        <div class="stat"><div class="v">3</div><div class="k">Tracks</div></div>
+      </div>
+
+      <div class="mock-cards">
+        <div class="mock-card">
+          <div class="img"><img src="../hero/cluster-gas.jpg" alt=""></div>
+          <div class="body">
+            <span class="b-badge">● Gas-phase</span>
+            <h3>Free cluster in vacuum</h3>
+            <p>Atoms are free to rearrange in 3D. The cluster explores its full configuration space.</p>
+          </div>
+        </div>
+        <div class="mock-card">
+          <div class="img"><img src="../hero/cluster-supported.jpg" alt=""></div>
+          <div class="body">
+            <span class="b-badge alt">● Supported</span>
+            <h3>Cluster on a support</h3>
+            <p>Graphene or α-Al₂O₃ anchors the cluster and reshapes its accessible basins.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mock-bottom">
+      <div class="mock-panel">
+        <h4>Energy on the Convex Hull <span class="tag">PtPd</span></h4>
+        <svg class="mini-chart" viewBox="0 0 540 220" preserveAspectRatio="none">
+          <g stroke="#2A3055" stroke-width="0.5">
+            <line x1="50" y1="20" x2="50" y2="200"/><line x1="50" y1="200" x2="520" y2="200"/>
+            <line x1="50" y1="65" x2="520" y2="65" stroke-dasharray="1,5"/>
+            <line x1="50" y1="110" x2="520" y2="110" stroke-dasharray="1,5"/>
+            <line x1="50" y1="155" x2="520" y2="155" stroke-dasharray="1,5"/>
+          </g>
+          <path d="M 70,180 Q 180,140 285,90 Q 380,130 510,170" stroke="#C8A47E" stroke-width="1.6" fill="none"/>
+          <path d="M 70,170 Q 180,130 285,80 Q 380,115 510,160" stroke="#9CC0FF" stroke-width="1.6" fill="none"/>
+          <path d="M 70,150 Q 180,115 285,70 Q 380,100 510,140" stroke="#A5B4FC" stroke-width="1.6" fill="none"/>
+          <g>
+            <circle cx="70" cy="170" r="5" fill="#9CC0FF"/>
+            <circle cx="170" cy="125" r="5" fill="#9CC0FF"/>
+            <circle cx="285" cy="80" r="5" fill="#9CC0FF"/>
+            <circle cx="395" cy="118" r="5" fill="#9CC0FF"/>
+            <circle cx="510" cy="160" r="5" fill="#9CC0FF"/>
+            <circle cx="120" cy="148" r="4" fill="#C8A47E"/>
+            <circle cx="220" cy="106" r="4" fill="#C8A47E"/>
+            <circle cx="320" cy="92" r="4" fill="#C8A47E"/>
+            <circle cx="430" cy="135" r="4" fill="#C8A47E"/>
+            <circle cx="100" cy="138" r="4" fill="#A5B4FC"/>
+            <circle cx="245" cy="86" r="4" fill="#A5B4FC"/>
+            <circle cx="365" cy="105" r="4" fill="#A5B4FC"/>
+          </g>
+          <text x="50" y="215" fill="#8993B8" font-size="10" font-family="JetBrains Mono">x_Pt = 0</text>
+          <text x="490" y="215" fill="#8993B8" font-size="10" font-family="JetBrains Mono">1</text>
+          <text x="14" y="115" fill="#8993B8" font-size="10" font-family="Newsreader" font-style="italic" transform="rotate(-90 18 115)">E_form (eV/atom)</text>
+        </svg>
+      </div>
+      <div class="mock-panel">
+        <h4>metaMD <span class="tag">Al₂O₃</span></h4>
+        <div class="mini-md">
+          <div class="item"><div class="ph" style="background: linear-gradient(135deg, #1c2348, #3d3550);"></div><div class="row"><span class="nm">PtPd<sub>55</sub></span><span class="b-badge">freetop</span></div></div>
+          <div class="item"><div class="ph" style="background: linear-gradient(135deg, #1f2848, #443018);"></div><div class="row"><span class="nm">AuCu<sub>147</sub></span><span class="b-badge">fix</span></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</body>
+</html>

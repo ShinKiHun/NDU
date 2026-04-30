@@ -1,31 +1,63 @@
 /* ───────────────────────────────────────────────────────
-   NDU — Stellar Grid theme (single).
-   Cosmic background (nebula + star pinpoints) layered on a
-   faint cyan coordinate grid. Universe + Digital, both pushed.
+   NDU dual-theme: dark (space) + bright (sky)
+   Toggle by setting data-theme on <html> or <body>.
 ─────────────────────────────────────────────────────── */
-:root {
-  --bg:        #060818;
-  --panel:     #0E1430;
-  --card:      #131938;
-  --card-hi:   #1A2046;
-  --accent:    #00E5FF;          /* electric cyan */
-  --accent-hi: #5DEEFF;
-  --accent-soft: rgba(0, 229, 255, 0.16);
-  --accent2:   #A78BFA;          /* lavender / cosmic violet */
-  --accent2-hi: #C4B0FB;
-  --accent2-soft: rgba(167, 139, 250, 0.16);
-  --magenta:   #B86BC8;
+:root,
+[data-theme="dark"] {
+  /* dark — deep space, indigo + cyan */
+  --bg:        #0a0a1f;
+  --bg-grad-1: rgba(34, 211, 238, 0.08);
+  --bg-grad-2: rgba(139, 92, 246, 0.12);
+  --panel:     #14122e;
+  --card:      #1d1a3f;
+  --card-hi:   #2a2554;
+  --accent:    #22D3EE;          /* electric cyan */
+  --accent-hi: #67E3F0;
+  --accent-soft: rgba(34, 211, 238, 0.15);
+  --accent2:   #8B5CF6;          /* violet */
+  --accent2-hi: #A78BFA;
+  --accent2-soft: rgba(139, 92, 246, 0.15);
+  --magenta:   #C04A8A;
   --teal:      #2EA88E;
-  --gold:      #FFD56B;          /* starlight amber (also accent3) */
-  --text:      #EAEEFF;
-  --subtext:   #7886BA;
-  --grid:      #1F2750;
-  --border:    #26305F;
-  --border-hi: #3E4880;
-  --shadow:    0 8px 28px rgba(0, 0, 0, 0.55);
-  --topbar-bg: rgba(6, 8, 24, 0.78);
-  --hero-grad: linear-gradient(135deg, #00E5FF 0%, #5DEEFF 18%, #A78BFA 60%, #FFD56B 100%);
+  --gold:      #E0B040;
+  --text:      #E8EAF8;
+  --subtext:   #8B86B8;
+  --grid:      #26244a;
+  --border:    #332f5c;
+  --border-hi: #443f7a;
+  --shadow:    0 8px 24px rgba(0, 0, 0, 0.45);
+  --topbar-bg: rgba(10, 10, 31, 0.78);
+  --hero-grad: linear-gradient(135deg, #67E3F0 0%, #22D3EE 25%, #8B5CF6 65%, #4338CA 100%);
+}
 
+[data-theme="bright"] {
+  /* bright — soft sky, deep cyan + violet on white */
+  --bg:        #F1F5FB;
+  --bg-grad-1: rgba(8, 145, 178, 0.08);
+  --bg-grad-2: rgba(124, 58, 237, 0.07);
+  --panel:     #FFFFFF;
+  --card:      #F5F8FF;
+  --card-hi:   #EAF0FB;
+  --accent:    #0891B2;          /* deep cyan for contrast */
+  --accent-hi: #0E7490;
+  --accent-soft: rgba(8, 145, 178, 0.12);
+  --accent2:   #7C3AED;          /* deep violet */
+  --accent2-hi: #6D28D9;
+  --accent2-soft: rgba(124, 58, 237, 0.10);
+  --magenta:   #BE185D;
+  --teal:      #0F766E;
+  --gold:      #B45309;
+  --text:      #1E1E3A;
+  --subtext:   #5B6478;
+  --grid:      #E2E8F0;
+  --border:    #D1D9E6;
+  --border-hi: #B0BAD0;
+  --shadow:    0 8px 24px rgba(30, 30, 58, 0.10);
+  --topbar-bg: rgba(255, 255, 255, 0.85);
+  --hero-grad: linear-gradient(135deg, #0E7490 0%, #0891B2 25%, #7C3AED 65%, #312E81 100%);
+}
+
+:root {
   --radius:    12px;
   --radius-sm: 8px;
   --mono:      ui-monospace, "JetBrains Mono", "SF Mono", Consolas, monospace;
@@ -35,42 +67,34 @@
 
 html, body {
   margin: 0; padding: 0;
-  color: var(--text);
+  background: var(--bg); color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   font-size: 15px; line-height: 1.55;
+  transition: background 0.3s ease, color 0.3s ease;
 }
-/* layered cosmic bg: nebula + cyan coordinate grid */
 body {
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(ellipse 1200px 700px at 12% 0%,  rgba(0, 229, 255, 0.13), transparent 65%),
-    radial-gradient(ellipse 900px 600px at 88% 30%,  rgba(167, 139, 250, 0.13), transparent 65%),
-    radial-gradient(ellipse 700px 500px at 50% 80%,  rgba(255, 213, 107, 0.05), transparent 70%),
-    linear-gradient(rgba(0, 229, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 229, 255, 0.045) 1px, transparent 1px);
-  background-size: auto, auto, auto, 80px 80px, 80px 80px;
-  background-attachment: fixed;
+  background:
+    radial-gradient(ellipse 1200px 600px at 50% -200px, var(--bg-grad-1), transparent 70%),
+    radial-gradient(ellipse 800px 500px at 100% 30%, var(--bg-grad-2), transparent 70%),
+    var(--bg);
   min-height: 100vh;
 }
-/* fixed star field on top of the grid+nebula */
-body::before {
+
+/* dark theme: subtle starfield */
+[data-theme="dark"] body::before {
   content: "";
-  position: fixed; inset: 0; pointer-events: none; z-index: -1;
+  position: fixed; inset: 0; pointer-events: none;
   background-image:
-    radial-gradient(1.2px 1.2px at  8% 12%, rgba(255,255,255,0.85), transparent 60%),
-    radial-gradient(1px   1px   at 22% 36%, rgba(255,255,255,0.65), transparent 60%),
-    radial-gradient(1.4px 1.4px at 35% 78%, rgba(0,229,255,0.85),   transparent 60%),
-    radial-gradient(1px   1px   at 51% 16%, rgba(255,255,255,0.55), transparent 60%),
-    radial-gradient(1.6px 1.6px at 67% 64%, rgba(255,213,107,0.85), transparent 60%),
-    radial-gradient(1px   1px   at 79% 28%, rgba(255,255,255,0.75), transparent 60%),
-    radial-gradient(1px   1px   at 88% 50%, rgba(167,139,250,0.75), transparent 60%),
-    radial-gradient(1.2px 1.2px at 14% 88%, rgba(255,255,255,0.6),  transparent 60%),
-    radial-gradient(1px   1px   at 92% 92%, rgba(255,255,255,0.5),  transparent 60%),
-    radial-gradient(1px   1px   at  4% 60%, rgba(0,229,255,0.55),   transparent 60%),
-    radial-gradient(1.3px 1.3px at 40%  6%, rgba(255,213,107,0.65), transparent 60%),
-    radial-gradient(1px   1px   at 56% 92%, rgba(167,139,250,0.55), transparent 60%);
-  opacity: 0.85;
+    radial-gradient(1px 1px at 20% 30%, rgba(232, 234, 248, 0.5), transparent),
+    radial-gradient(1px 1px at 75% 18%, rgba(232, 234, 248, 0.4), transparent),
+    radial-gradient(1px 1px at 45% 70%, rgba(232, 234, 248, 0.3), transparent),
+    radial-gradient(1px 1px at 85% 60%, rgba(232, 234, 248, 0.5), transparent),
+    radial-gradient(1px 1px at 12% 88%, rgba(232, 234, 248, 0.4), transparent),
+    radial-gradient(1px 1px at 60% 45%, rgba(232, 234, 248, 0.3), transparent),
+    radial-gradient(1px 1px at 30% 50%, rgba(232, 234, 248, 0.4), transparent),
+    radial-gradient(1px 1px at 90% 80%, rgba(232, 234, 248, 0.3), transparent);
+  z-index: -1; opacity: 0.6;
 }
 
 a { color: var(--accent); text-decoration: none; }
@@ -86,6 +110,7 @@ a:hover { color: var(--accent-hi); }
   background: var(--topbar-bg);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
 .brand .square {
@@ -112,6 +137,21 @@ a:hover { color: var(--accent-hi); }
   color: var(--accent); background: var(--accent-soft);
   border-bottom-color: var(--accent);
 }
+
+.theme-toggle {
+  background: var(--card); border: 1px solid var(--border);
+  width: 38px; height: 38px;
+  border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--subtext);
+  transition: all 0.14s ease;
+}
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.theme-toggle svg { width: 18px; height: 18px; fill: currentColor; }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: block; }
+[data-theme="bright"] .theme-toggle .icon-sun { display: block; }
+[data-theme="bright"] .theme-toggle .icon-moon { display: none; }
 
 .gh-link {
   display: flex; align-items: center; gap: 6px;
@@ -163,7 +203,6 @@ section { margin-bottom: 72px; scroll-margin-top: 24px; }
   background: var(--hero-grad);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.28));
 }
 .hero .acronym {
   display: inline-block;
@@ -189,14 +228,12 @@ section { margin-bottom: 72px; scroll-margin-top: 24px; }
 .stat::before {
   content: ""; position: absolute; inset: 0 0 auto 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--accent), var(--accent2) 60%, transparent);
-  box-shadow: 0 0 8px var(--accent);
-  opacity: 0.85;
+  background: linear-gradient(90deg, var(--accent), transparent 70%);
+  opacity: 0.7;
 }
 .stat .v {
   font-family: var(--mono); font-size: 26px; font-weight: 700;
   color: var(--accent); letter-spacing: -0.5px;
-  text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
 }
 .stat .k {
   color: var(--subtext); font-size: 12px;
@@ -224,11 +261,12 @@ a.cluster-card:hover .enter-cta { color: var(--accent); }
 
 .cluster-img {
   width: 100%; aspect-ratio: 1 / 1;
-  background: #0a0e26;
+  background: #0e1432;
   border-bottom: 1px solid var(--border);
   overflow: hidden;
   position: relative;
 }
+[data-theme="bright"] .cluster-img { background: #1B2438; }
 .cluster-img img {
   width: 100%; height: 100%;
   object-fit: cover; display: block;
@@ -400,12 +438,13 @@ a.cluster-card .enter-cta {
 /* ── Lightbox ──────────────────────────────────────────── */
 .lightbox {
   position: fixed; inset: 0; z-index: 100;
-  background: rgba(6, 8, 24, 0.92);
+  background: rgba(10, 10, 31, 0.92);
   backdrop-filter: blur(6px);
   display: none;
   align-items: center; justify-content: center;
   padding: 32px;
 }
+[data-theme="bright"] .lightbox { background: rgba(30, 30, 58, 0.65); }
 .lightbox.open { display: flex; }
 .lb-inner {
   background: var(--panel); border: 1px solid var(--border);

@@ -1,7 +1,7 @@
 /* NDU site — main interactive logic.
    Multi-page hash routing (Home / Gas / Supported / Methods / Refs).
-   Reads CSS custom properties at render time so chart colors stay in sync
-   with the Stellar Grid theme tokens. */
+   Theme-aware: reads CSS custom properties at render time, re-renders plots
+   when [data-theme] changes on <html>. */
 
 function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -21,8 +21,10 @@ function getPalette() {
   };
 }
 function sizeGradient() {
-  /* size palette: aurora-like cyan → sky → lavender → orchid → starlight amber */
-  return ["#00E5FF", "#7CBEFF", "#A78BFA", "#D87DCF", "#FFD56B"];
+  const dark = document.documentElement.getAttribute("data-theme") !== "bright";
+  return dark
+    ? ["#22D3EE", "#5BAEEC", "#8B5CF6", "#5B21B6", "#1E1B4B"]
+    : ["#0891B2", "#5B7DC0", "#7C3AED", "#5B21B6", "#1E1B4B"];
 }
 let PALETTE = getPalette();
 
@@ -58,6 +60,7 @@ function main() {
   STATE.fes_sup_pair  = DATA.meta.pairs[0];
   STATE.eah_sizes     = new Set(DATA.meta.sizes);
 
+  initTheme();
   initMeta();
   initHeroStats();
   initEah();
@@ -67,6 +70,29 @@ function main() {
   initMdSup();
   initRouter();
   showPage(STATE.page);
+}
+
+// ─── theme toggle ─────────────────────────────────────────────────────────
+function initTheme() {
+  const saved = localStorage.getItem("ndu-theme");
+  if (saved === "bright" || saved === "dark") applyTheme(saved, false);
+  const btn = document.querySelector("#theme-toggle");
+  if (btn) btn.addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme") || "dark";
+    applyTheme(cur === "dark" ? "bright" : "dark", true);
+  });
+}
+function applyTheme(theme, rerender) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("ndu-theme", theme);
+  PALETTE = getPalette();
+  if (rerender && DATA) {
+    renderEah();
+    renderFesGas();
+    renderFesSup();
+    renderMdGas();
+    renderMdSup();
+  }
 }
 
 // ─── helpers ──────────────────────────────────────────────────────────────
