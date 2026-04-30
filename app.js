@@ -1,4 +1,5 @@
 /* NDU site — main interactive logic.
+   Multi-page hash routing (Home / Gas / Supported / Methods / Refs).
    Theme-aware: reads CSS custom properties at render time, re-renders plots
    when [data-theme] changes on <html>. */
 
@@ -20,23 +21,25 @@ function getPalette() {
   };
 }
 function sizeGradient() {
-  // Cyan → mid-violet → deep indigo, theme-aware via accent + accent2
   const dark = document.documentElement.getAttribute("data-theme") !== "bright";
   return dark
     ? ["#22D3EE", "#5BAEEC", "#8B5CF6", "#5B21B6", "#1E1B4B"]
     : ["#0891B2", "#5B7DC0", "#7C3AED", "#5B21B6", "#1E1B4B"];
 }
-let PALETTE = getPalette();           // refreshed on theme toggle
+let PALETTE = getPalette();
 
 let DATA = null;
 
+const VALID_PAGES = ["home", "gas", "supported", "methods", "refs"];
 const STATE = {
-  eah_pair:   null,
-  eah_metric: "E_form",
-  eah_sizes:  null,   // Set of selected sizes
-  fes_track:  "gas",
-  fes_pair:   null,
-  md_filter:  "all",
+  page:           pageFromHash(),
+  eah_pair:       null,
+  eah_metric:     "E_form",
+  eah_sizes:      null,
+  fes_gas_pair:   null,
+  fes_sup_track:  "graphene",
+  fes_sup_pair:   null,
+  md_sup_filter:  "graphene",
 };
 
 // ─── boot ────────────────────────────────────────────────────────────────
@@ -44,24 +47,28 @@ fetch("data.json")
   .then(r => r.json())
   .then(d => { DATA = d; main(); })
   .catch(err => {
-    document.querySelector("#hero-stats").innerHTML =
+    const stats = document.querySelector("#hero-stats");
+    if (stats) stats.innerHTML =
       `<div class="stat" style="grid-column:1/-1"><div class="v">⚠</div><div class="k">data.json failed to load — run python build_data.py</div></div>`;
     console.error(err);
   });
 
 function main() {
-  STATE.eah_pair  = DATA.meta.pairs[0];
-  STATE.fes_pair  = DATA.meta.pairs[0];
-  STATE.eah_sizes = new Set(DATA.meta.sizes);
+  STATE.eah_pair      = DATA.meta.pairs[0];
+  STATE.fes_gas_pair  = DATA.meta.pairs[0];
+  STATE.fes_sup_pair  = DATA.meta.pairs[0];
+  STATE.eah_sizes     = new Set(DATA.meta.sizes);
 
   initTheme();
   initMeta();
   initHeroStats();
-  initPairGrid();
   initEah();
-  initFes();
-  initMd();
-  initNav();
+  initFesGas();
+  initFesSup();
+  initMdGas();
+  initMdSup();
+  initRouter();
+  showPage(STATE.page);
 }
 
 // ─── theme toggle ─────────────────────────────────────────────────────────
@@ -80,9 +87,10 @@ function applyTheme(theme, rerender) {
   PALETTE = getPalette();
   if (rerender && DATA) {
     renderEah();
-    renderFes();
-    renderMd();
-    initPairGrid();
+    renderFesGas();
+    renderFesSup();
+    renderMdGas();
+    renderMdSup();
   }
 }
 
@@ -98,7 +106,6 @@ function fmtSign(v, d = 4) {
   return (v >= 0 ? "+" : "") + v.toFixed(d);
 }
 function pairElems(pair) {
-  // Pair name like "PtPd" → [Pt, Pd]. Two capital-letter chunks.
   const m = pair.match(/[A-Z][a-z]?/g);
   return m && m.length >= 2 ? [m[0], m[1]] : [pair, ""];
 }
@@ -166,6 +173,36 @@ function makeSeg(container, options, current, onChange) {
   });
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+//  Routing
+// ════════════════════════════════════════════════════════════════════════════
+function pageFromHash() {
+  const h = (location.hash || "#home").replace("#", "").split("/")[0];
+  return VALID_PAGES.includes(h) ? h : "home";
+}
+function initRouter() {
+  // Hash-based links (nav + cluster cards on home).
+  // They use plain href="#X" so let the browser update the hash; we react to hashchange.
+  window.addEventListener("hashchange", () => {
+    const p = pageFromHash();
+    if (p !== STATE.page) showPage(p);
+  });
+}
+function showPage(name) {
+  STATE.page = name;
+  document.querySelectorAll(".page").forEach(p =>
+    p.classList.toggle("page--active", p.id === `page-${name}`));
+  document.querySelectorAll(".nav a").forEach(a =>
+    a.classList.toggle("active", a.dataset.page === name));
+  // Plotly needs a resize after the container becomes visible
+  setTimeout(() => {
+    document.querySelectorAll(`#page-${name} .plot`).forEach(el => {
+      if (el && el._fullData) Plotly.Plots.resize(el);
+    });
+    window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+  }, 0);
+}
+
 // ─── 0. metadata + hero ───────────────────────────────────────────────────
 function initMeta() {
   const dt = DATA.meta.generated_at?.replace("T", " ").replace(/\+.*$/, "").slice(0, 16) || "—";
@@ -182,30 +219,12 @@ function initHeroStats() {
     { v: DATA.meta.n_systems_gas,  k: "Gas-phase systems" },
     { v: DATA.meta.supports.length + 1, k: "Tracks (gas + 2 supports)" },
   ];
-  document.querySelector("#hero-stats").innerHTML =
+  const el = document.querySelector("#hero-stats");
+  if (el) el.innerHTML =
     stats.map(s => `<div class="stat"><div class="v">${s.v}</div><div class="k">${s.k}</div></div>`).join("");
 }
 
-function initPairGrid() {
-  const grid = document.querySelector("#pair-grid");
-  grid.innerHTML = "";
-  DATA.meta.pairs.forEach(p => {
-    const [a, b] = pairElems(p);
-    const sizes = Object.keys(DATA.eoh[p].sizes).length;
-    const cell = document.createElement("div");
-    cell.className = "pair-tile";
-    cell.innerHTML = `<div class="nm">${a}–${b}</div><div class="sub">${sizes} sizes · 14 comp</div>`;
-    cell.addEventListener("click", () => {
-      STATE.eah_pair = p;
-      document.querySelector("#eah-pair").value = p;
-      renderEah();
-      document.querySelector("#eah").scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-    grid.appendChild(cell);
-  });
-}
-
-// ─── 1. EAH (main feature) ────────────────────────────────────────────────
+// ─── 1. EAH (gas page) ────────────────────────────────────────────────────
 function initEah() {
   const sel = document.querySelector("#eah-pair");
   sel.innerHTML = DATA.meta.pairs.map(p => {
@@ -215,7 +234,6 @@ function initEah() {
   sel.value = STATE.eah_pair;
   sel.addEventListener("change", () => { STATE.eah_pair = sel.value; renderEah(); });
 
-  // metric segment
   document.querySelectorAll("#eah-metric-seg button").forEach(b => {
     b.addEventListener("click", () => {
       document.querySelectorAll("#eah-metric-seg button").forEach(x => x.classList.remove("on"));
@@ -225,7 +243,6 @@ function initEah() {
     });
   });
 
-  // size segment — multi-select toggles
   const sizeSeg = document.querySelector("#eah-size-seg");
   sizeSeg.innerHTML = "";
   DATA.meta.sizes.forEach(sz => {
@@ -247,7 +264,6 @@ function initEah() {
   renderEah();
 }
 
-// ── compute lower convex hull of (x, y) points; returns indices on hull, sorted by x
 function lowerHull(points) {
   const idx = points.map((p, i) => i).sort((a, b) => points[a].x - points[b].x);
   const stack = [];
@@ -264,7 +280,6 @@ function lowerHull(points) {
   return stack;
 }
 
-// linear interpolation on hull at given x
 function hullAt(hullPoints, x) {
   if (hullPoints.length === 0) return null;
   if (x <= hullPoints[0].x) return hullPoints[0].y;
@@ -301,7 +316,7 @@ function renderEah() {
     const hullIdx = lowerHull(pts);
     const hullPts = hullIdx.map(i => pts[i]);
 
-    let xs, ys, errs, hovers, ylabel;
+    let xs, ys, errs, hovers;
     if (metric === "E_form") {
       xs = pts.map(p => p.x);
       ys = pts.map(p => p.y);
@@ -311,7 +326,6 @@ function renderEah() {
         `E<sub>form</sub> = ${fmtSign(c.E_form, 4)} eV/atom<br>` +
         `E<sub>mix</sub> = ${fmtSign(c.E_mix, 4)} eV/atom<br>` +
         `±${c.err.toFixed(4)}`);
-      ylabel = "E<sub>form</sub> (eV/atom)";
     } else if (metric === "E_mix") {
       xs = pts.map(p => p.x);
       ys = sd.comps.map(c => c.E_mix);
@@ -320,8 +334,7 @@ function renderEah() {
         `<b>${c.comp}</b><br>x=${c.x.toFixed(3)}<br>` +
         `E<sub>mix</sub> = ${fmtSign(c.E_mix, 4)} eV/atom<br>` +
         `(E<sub>form</sub> = ${fmtSign(c.E_form, 4)})`);
-      ylabel = "E<sub>mix</sub> (eV/atom)";
-    } else { // EAH
+    } else {
       xs = pts.map(p => p.x);
       ys = sd.comps.map(c => {
         const yh = hullAt(hullPts, c.x);
@@ -332,11 +345,8 @@ function renderEah() {
         `<b>${c.comp}</b><br>x=${c.x.toFixed(3)}<br>` +
         `E<sub>above hull</sub> = ${fmt(ys[i], 4)} eV/atom<br>` +
         `(E<sub>form</sub> = ${fmtSign(c.E_form, 4)})`);
-      ylabel = "E<sub>above hull</sub> (eV/atom)";
     }
 
-    // hull dashed line — drawn on the metric being plotted
-    // (E_form: lower hull of E_form; E_mix: lower hull of E_mix; EAH: hull is y=0 by definition)
     if (metric !== "EAH") {
       const ptsM = sd.comps.map((c, i) => ({ x: c.x, y: ys[i], raw: c }));
       const hullM = lowerHull(ptsM).map(i => ptsM[i]);
@@ -360,7 +370,6 @@ function renderEah() {
     });
   });
 
-  // y-zero line for E_mix and EAH
   if (metric !== "E_form") {
     traces.push({
       type: "scatter", mode: "lines",
@@ -388,16 +397,13 @@ function renderEah() {
     margin: { l: 80, r: 130, t: 20, b: 60 },
   }), PLOTLY_CFG);
 
-  // side panel — best E_mix per size + bulk refs
   const bestList = document.querySelector("#eah-best-list");
   let html = "";
   DATA.meta.sizes.forEach(sz => {
     const sd = block.sizes[sz];
     if (!sd) return;
     let best = null;
-    sd.comps.forEach(c => {
-      if (best == null || c.E_mix < best.E_mix) best = c;
-    });
+    sd.comps.forEach(c => { if (best == null || c.E_mix < best.E_mix) best = c; });
     const cls = STATE.eah_sizes.has(sz) ? "best" : "";
     html += `<div class="row">
       <span class="k">size ${sz} <span style="color:var(--subtext);font-size:10.5px">(${best.comp})</span></span>
@@ -412,80 +418,91 @@ function renderEah() {
   ).join("");
 }
 
-// ─── 2. FES Gallery ───────────────────────────────────────────────────────
-function initFes() {
-  document.querySelectorAll("#fes-track-seg button").forEach(b => {
-    b.addEventListener("click", () => {
-      document.querySelectorAll("#fes-track-seg button").forEach(x => x.classList.remove("on"));
-      b.classList.add("on");
-      STATE.fes_track = b.dataset.v;
-      renderFes();
-    });
-  });
-
-  // pair filter: required (no "all"), default first pair → 5 thumbs per page
-  const seg = document.querySelector("#fes-pair-seg");
-  STATE.fes_pair = DATA.meta.pairs[0];
+// ─── 2a. FES — Gas page ───────────────────────────────────────────────────
+function initFesGas() {
+  const seg = document.querySelector("#fes-gas-pair-seg");
+  if (!seg) return;
   makeSeg(seg, DATA.meta.pairs.map(p => {
     const [a, b] = pairElems(p);
     return { value: p, label: `${a}${b}` };
-  }), STATE.fes_pair, v => { STATE.fes_pair = v; renderFes(); });
-
-  renderFes();
+  }), STATE.fes_gas_pair, v => { STATE.fes_gas_pair = v; renderFesGas(); });
+  renderFesGas();
+}
+function renderFesGas() {
+  renderFesInto({
+    grid: document.querySelector("#fes-gas-grid"),
+    track: "gas",
+    pair: STATE.fes_gas_pair,
+  });
 }
 
-function renderFes() {
-  const grid = document.querySelector("#fes-grid");
-  const track = STATE.fes_track;
-  const pairFilter = STATE.fes_pair;
-  const pairs = DATA.fes[track] || {};
-
-  let cells = [];
-  Object.keys(pairs).forEach(pair => {
-    if (pair !== pairFilter) return;
-    const sizes = pairs[pair];
-    Object.keys(sizes).sort((a, b) => +a - +b).forEach(sz => {
-      const entry = sizes[sz];
-      cells.push({ pair, size: +sz, ...entry });
+// ─── 2b. FES — Supported page ─────────────────────────────────────────────
+function initFesSup() {
+  document.querySelectorAll("#fes-sup-track-seg button").forEach(b => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll("#fes-sup-track-seg button").forEach(x => x.classList.remove("on"));
+      b.classList.add("on");
+      STATE.fes_sup_track = b.dataset.v;
+      renderFesSup();
     });
   });
+  const seg = document.querySelector("#fes-sup-pair-seg");
+  if (!seg) return;
+  makeSeg(seg, DATA.meta.pairs.map(p => {
+    const [a, b] = pairElems(p);
+    return { value: p, label: `${a}${b}` };
+  }), STATE.fes_sup_pair, v => { STATE.fes_sup_pair = v; renderFesSup(); });
+  renderFesSup();
+}
+function renderFesSup() {
+  renderFesInto({
+    grid: document.querySelector("#fes-sup-grid"),
+    track: STATE.fes_sup_track,
+    pair: STATE.fes_sup_pair,
+  });
+}
 
+// shared FES grid renderer
+function renderFesInto({ grid, track, pair }) {
+  if (!grid) return;
+  const pairs = DATA.fes[track] || {};
+  const cells = [];
+  Object.keys(pairs).forEach(p => {
+    if (p !== pair) return;
+    const sizes = pairs[p];
+    Object.keys(sizes).sort((a, b) => +a - +b).forEach(sz => {
+      cells.push({ pair: p, size: +sz, ...sizes[sz] });
+    });
+  });
   if (cells.length === 0) {
     grid.innerHTML = `<div class="gal-cell"><div class="thumb empty">No FES data for this filter.</div></div>`;
     return;
   }
-
   grid.innerHTML = cells.map(c => {
     const [a, b] = pairElems(c.pair);
-    // pick a representative thumb (FES isosurface preferred — that's the actual free-energy view)
     const thumb =
       c.files.find(f => f === "fes_3d_fes.png" || f === "fes_3d_energy.png") ||
       c.files.find(f => f.includes("3d")) ||
       c.files.find(f => f.includes("extracted")) ||
       c.files[0];
-    const thumbPath = `${c.dir}/${thumb}`;
     const compTxt = c.comp ? `<span class="sub">${c.comp}</span>` : `<span class="sub">1:1</span>`;
     return `<div class="gal-cell" data-pair="${c.pair}" data-size="${c.size}" data-track="${track}" data-comp="${c.comp || ''}" data-dir="${c.dir}" data-files="${c.files.join('|')}">
-      <div class="thumb"><img src="${thumbPath}" alt="${c.pair} ${c.size}" loading="lazy"></div>
+      <div class="thumb"><img src="${c.dir}/${thumb}" alt="${c.pair} ${c.size}" loading="lazy"></div>
       <div class="meta">
         <span class="nm">${a}–${b} · n=${c.size}</span>
         ${compTxt}
       </div>
     </div>`;
   }).join("");
-
   grid.querySelectorAll(".gal-cell").forEach(el => {
     el.addEventListener("click", () => openLightbox({
-      pair: el.dataset.pair,
-      size: el.dataset.size,
-      track: el.dataset.track,
-      comp: el.dataset.comp,
-      dir: el.dataset.dir,
-      files: el.dataset.files.split("|"),
+      pair: el.dataset.pair, size: el.dataset.size, track: el.dataset.track,
+      comp: el.dataset.comp, dir: el.dataset.dir, files: el.dataset.files.split("|"),
     }));
   });
 }
 
+// ─── Lightbox (shared) ────────────────────────────────────────────────────
 function openLightbox({ pair, size, track, comp, dir, files }) {
   const [a, b] = pairElems(pair);
   document.querySelector("#lb-title").textContent =
@@ -537,39 +554,55 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") document.querySelector("#lb").classList.remove("open");
 });
 
-// ─── 3. MD Gallery ────────────────────────────────────────────────────────
-function initMd() {
-  // start filtered to gas only — keeps the page calm as more clusters land later
-  STATE.md_filter = "gas";
-  // unique support tags + always include 'all' last (escape valve)
-  const observed = [...new Set(DATA.gifs.map(g => g.support).filter(Boolean))];
-  // canonical order: gas, graphene, Al2O3, freetop, sup, then anything new
-  const canonical = ["gas", "graphene", "Al2O3", "freetop", "sup"];
+// ─── 3a. MD — Gas page ────────────────────────────────────────────────────
+function initMdGas() { renderMdGas(); }
+function renderMdGas() {
+  const grid = document.querySelector("#md-gas-grid");
+  if (!grid) return;
+  const items = DATA.gifs.filter(g => g.support === "gas");
+  renderMdGrid(grid, items);
+}
+
+// ─── 3b. MD — Supported page ──────────────────────────────────────────────
+function initMdSup() {
+  const fbox = document.querySelector("#md-sup-filters");
+  if (!fbox) return;
+  const observed = [...new Set(DATA.gifs.map(g => g.support).filter(t => t && t !== "gas"))];
+  const canonical = ["graphene", "Al2O3", "freetop", "sup"];
   const ordered = canonical.filter(t => observed.includes(t))
     .concat(observed.filter(t => !canonical.includes(t)));
   const tags = [...ordered, "all"];
+  if (!tags.includes(STATE.md_sup_filter)) STATE.md_sup_filter = tags[0];
 
-  const fbox = document.querySelector("#md-filters");
   fbox.innerHTML = tags.map(t => {
     const label = t === "Al2O3" ? "Al₂O₃" : t;
-    const cls = t === STATE.md_filter ? ' class="on"' : "";
+    const cls = t === STATE.md_sup_filter ? ' class="on"' : "";
     return `<button data-v="${t}"${cls}>${label}</button>`;
   }).join("");
   fbox.querySelectorAll("button").forEach(b => {
     b.addEventListener("click", () => {
       fbox.querySelectorAll("button").forEach(x => x.classList.remove("on"));
       b.classList.add("on");
-      STATE.md_filter = b.dataset.v;
-      renderMd();
+      STATE.md_sup_filter = b.dataset.v;
+      renderMdSup();
     });
   });
-  renderMd();
+  renderMdSup();
+}
+function renderMdSup() {
+  const grid = document.querySelector("#md-sup-grid");
+  if (!grid) return;
+  const filt = STATE.md_sup_filter;
+  const items = DATA.gifs.filter(g => {
+    if (g.support === "gas") return false;
+    if (filt === "all") return true;
+    return g.support === filt;
+  });
+  renderMdGrid(grid, items);
 }
 
-function renderMd() {
-  const grid = document.querySelector("#md-grid");
-  const filt = STATE.md_filter;
-  const items = DATA.gifs.filter(g => filt === "all" || g.support === filt);
+// shared MD card renderer
+function renderMdGrid(grid, items) {
   if (!items.length) {
     grid.innerHTML = `<div class="md-card"><div class="info"><span class="nm">No matching trajectories.</span></div></div>`;
     return;
@@ -588,22 +621,4 @@ function renderMd() {
       </div>
     </div>`;
   }).join("");
-}
-
-// ─── 4. Sticky nav active state ───────────────────────────────────────────
-function initNav() {
-  const links = document.querySelectorAll(".nav a");
-  const sections = [...links].map(a => document.querySelector(a.getAttribute("href")));
-  function update() {
-    let active = 0;
-    const y = window.scrollY + 140;
-    sections.forEach((s, i) => { if (s && s.offsetTop <= y) active = i; });
-    links.forEach((a, i) => a.classList.toggle("active", i === active));
-  }
-  window.addEventListener("scroll", update, { passive: true });
-  update();
-  links.forEach(a => a.addEventListener("click", e => {
-    e.preventDefault();
-    document.querySelector(a.getAttribute("href")).scrollIntoView({ behavior: "smooth", block: "start" });
-  }));
 }
