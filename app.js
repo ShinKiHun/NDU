@@ -21,8 +21,8 @@ function getPalette() {
   };
 }
 function sizeGradient() {
-  /* size palette: aurora-like cyan → sky → lavender → orchid → starlight amber */
-  return ["#00E5FF", "#7CBEFF", "#A78BFA", "#D87DCF", "#FFD56B"];
+  /* size palette: deep-field nebula — soft blue → lavender → plum → magenta → amber */
+  return ["#7AA7FF", "#A78BFA", "#C58BE8", "#E879B8", "#FFD56B"];
 }
 let PALETTE = getPalette();
 

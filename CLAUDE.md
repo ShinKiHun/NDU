@@ -77,17 +77,19 @@ GIF 메타 필드:
 
 ## 디자인
 
-### Stellar Grid 테마 (단일)
+### Deep Field 테마 (단일)
 
-(2026-04-30) 듀얼 테마(dark/bright) 폐기 → 단일 **Stellar Grid** 적용. "Nanocluster Digital Universe" 정체성을 최대로 — 디지털 좌표 그리드 위에 우주 성운+별을 레이어드한 합성 테마.
+(2026-04-30 v2) Stellar Grid (theme-D) 가 너무 "네오틱"하다는 사용자 피드백 (시안 글로우/그리드/네온 톤 과다) → **Universe + Nanocluster** 강화, **Digital 모티프 약화** 방향으로 전환. 새 테마 = "Deep Field".
 
-- 배경: `var(--bg) #060818` 위에 **3-stop nebula** radial-gradient (시안 좌상 + 바이올렛 우하 + 앰버 중앙) + **80px cyan 그리드** linear-gradient + **12개 별 핀포인트** (`body::before` fixed). `background-attachment:fixed` 로 스크롤해도 우주 배경 유지.
-- 핵심 색: accent `#00E5FF` cyan, accent2 `#A78BFA` lavender, gold `#FFD56B` starlight amber. magenta/teal는 metaMD 뱃지용 보조.
-- Hero h1: 시안→라벤더→앰버 linear-gradient + drop-shadow `rgba(0,229,255,0.28)` (초신성 텍스트).
-- 통계 카드: 상단에 `linear-gradient(90deg, accent, accent2 60%, transparent)` 1.5px bar + 0 8px box-shadow → 데이터-에너지 흐름 느낌.
-- Plotly size palette: `["#00E5FF","#7CBEFF","#A78BFA","#D87DCF","#FFD56B"]` (오로라 스펙트럼).
+- 베이스: `var(--bg) #050310` (거의 검정, 약간 자수정 톤). 시안 80px 좌표 그리드 **제거**.
+- 네뷸라: 4-stop radial-gradient — 라벤더 좌상(`#A78BFA 0.18`) + 플럼/마젠타 우상(`#E879B8 0.13`) + 앰버 하단(`#FFD56B 0.07`) + 부드러운 블루 우중(`#7AA7FF 0.07`). Hubble Deep Field 같은 톤.
+- 별 14개 핀포인트 (`body::before` fixed): 화이트/오프화이트/앰버/소프트블루/라벤더/플럼 — **시안 별 모두 제거**.
+- 핵심 색: accent `#A78BFA` lavender (메인), accent2 `#E879B8` plum/magenta, gold `#FFD56B` starlight amber. magenta/teal는 metaMD 뱃지용 보조.
+- Hero h1: 라벤더→플럼→앰버 linear-gradient. **drop-shadow 글로우 제거** (네오틱 원흉).
+- 통계 카드: 상단 1.5px bar `linear-gradient(90deg, lavender, plum 70%, transparent)` opacity 0.7. **box-shadow / text-shadow 제거**.
+- Plotly size palette: `["#7AA7FF","#A78BFA","#C58BE8","#E879B8","#FFD56B"]` (deep-field nebula).
 
-이전 시안 3개 PNG는 `assets/preview/theme-A/B/C.png` (Cosmic Observatory / Atomic Neon / Quantum Atlas)에 보존. 채택된 시안은 `theme-D.png` ("Stellar Grid"). 라이브 적용 직전 상태는 `backup/2026-04-30/`에 백업 (index.html / styles.css / app.js / themes.html).
+이전 시안 PNG들은 `assets/preview/theme-A/B/C/D.png` 보존 (D=폐기된 Stellar Grid). 라이브 적용 직전 dual-theme 상태는 `backup/2026-04-30/`에 백업.
 
 ### Hero 이미지
 
@@ -110,7 +112,7 @@ home의 두 cluster 카드는 `<a class="cluster-card" href="#gas|#supported">` 
 - legend 차트 내부 우상단 floating
 - ticks outside, axis title 색은 subtext
 
-`sizeGradient()` 단일 — `["#00E5FF","#7CBEFF","#A78BFA","#D87DCF","#FFD56B"]` aurora.
+`sizeGradient()` 단일 — `["#7AA7FF","#A78BFA","#C58BE8","#E879B8","#FFD56B"]` deep-field nebula.
 
 ## 페어/support 추가 워크플로
 
@@ -159,6 +161,7 @@ git add -A && git commit -m "Add <NEW_PAIR> to NDU site" && git push
 - (2026-04-30) **MD substrate × constraint 분리**: `support` 단일 필드 → `substrate ∈ {gas, graphene, Al2O3, unknown}` + `constraint ∈ {fix, freetop}`. supported 페이지에 두 단계 segment 필터.
 - (2026-04-30) **EOH 차트 polish**: spline + halo + outlined markers + solid hull + transparent bg. (위 "EOH 차트" 단락 참조)
 - (2026-04-30) **Stellar Grid (theme D) 채택**: A/B/C 셋 다 "디지털+우주" 둘 다 강하게 잡지 못해서 A의 우주(성운+별)와 B의 디지털(그리드+글로우)을 융합한 4번째 시안을 새로 제작. 라이브 사이트에 단일 테마로 적용.
+- (2026-04-30 v2) **Deep Field 로 전환** (theme D 폐기): D 가 너무 "네오틱" — 시안 그리드 + 시안 별 + h1 글로우 + stat 글로우가 합쳐져 게이밍/사이버펑크 톤. Universe + Nanocluster 강화 / Digital 약화 방향으로 전환. 시안 그리드/글로우 모두 제거, 액센트는 라벤더(`#A78BFA`)/플럼(`#E879B8`)/앰버(`#FFD56B`). 베이스 `#050310`. Hubble Deep Field 톤.
 - (2026-04-30) **결정 보류 / TODO**:
   - Chemiscope 연동 — FES + per-frame 구조 + per-frame property 를 한 위젯에 (사용자: "결과분석 시원하게 끝낸 후"). 본체 파이프라인이 frame extraction 끝낸 다음.
   - "가장 안정한 구조" 시각화 — Chemiscope로 흡수 가능. 단기 대안: lowest-`E_form` frame 정적 ASE render PNG.
