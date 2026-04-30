@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-04-29T11:47:56+00:00",
+    "generated_at": "2026-04-30T07:07:00+00:00",
     "pairs": [
       "PtPd",
       "AuCu",
@@ -4926,98 +4926,112 @@
     {
       "pair": "AuCu",
       "size": 147,
-      "support": "Al2O3",
+      "substrate": "Al2O3",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "aucu147_al2o3_uma.gif"
     },
     {
       "pair": "AuCu",
       "size": 147,
-      "support": "graphene",
+      "substrate": "graphene",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "aucu147_graphene_uma.gif"
     },
     {
       "pair": "CoNi",
       "size": 13,
-      "support": "gas",
+      "substrate": "gas",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "coni13_gas_uma.gif"
     },
     {
       "pair": "CoNi",
       "size": 147,
-      "support": "graphene",
+      "substrate": "graphene",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "coni147_graphene_uma.gif"
     },
     {
       "pair": "CoNi",
       "size": 55,
-      "support": "sup",
+      "substrate": "unknown",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "coni55_sup_uma.gif"
     },
     {
       "pair": "CuPd",
       "size": 147,
-      "support": "Al2O3",
+      "substrate": "Al2O3",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "cupd147_al2o3_uma.gif"
     },
     {
       "pair": "FeNi",
       "size": 147,
-      "support": "graphene",
+      "substrate": "graphene",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "feni147_graphene_uma.gif"
     },
     {
       "pair": "PtPd",
       "size": 147,
-      "support": "Al2O3",
+      "substrate": "Al2O3",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "ptpd147_al2o3_uma.gif"
     },
     {
       "pair": "PtPd",
       "size": 147,
-      "support": "graphene",
+      "substrate": "graphene",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "ptpd147_graphene_uma.gif"
     },
     {
       "pair": "PtPd",
       "size": 55,
-      "support": "freetop",
+      "substrate": "Al2O3",
+      "constraint": "freetop",
       "mlip": "uma",
       "file": "ptpd55_al2o3_freetop_uma.gif"
     },
     {
       "pair": "PtPd",
       "size": 55,
-      "support": "Al2O3",
+      "substrate": "Al2O3",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "ptpd55_al2o3_uma.gif"
     },
     {
       "pair": "PtPd",
       "size": 55,
-      "support": "graphene",
+      "substrate": "graphene",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "ptpd55_graphene_uma.gif"
     },
     {
       "pair": "RuIr",
       "size": 147,
-      "support": "Al2O3",
+      "substrate": "Al2O3",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "ruir147_al2o3_uma.gif"
     },
     {
       "pair": "RuIr",
       "size": 147,
-      "support": "graphene",
+      "substrate": "graphene",
+      "constraint": "fix",
       "mlip": "uma",
       "file": "ruir147_graphene_uma.gif"
     }

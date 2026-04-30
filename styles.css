@@ -524,8 +524,10 @@ a.cluster-card .enter-cta {
 .md-card .badge.gas      { background: var(--accent-soft); color: var(--accent); }
 .md-card .badge.graphene { background: var(--accent2-soft); color: var(--accent2); }
 .md-card .badge.al2o3    { background: rgba(192, 74, 138, 0.18); color: var(--magenta); }
-.md-card .badge.freetop  { background: rgba(46, 168, 142, 0.18); color: var(--teal); }
-.md-card .badge.sup      { background: var(--accent2-soft); color: var(--accent2); }
+.md-card .badge.fix      { background: rgba(224, 176, 64, 0.18); color: var(--gold); }
+.md-card .badge.freetop  { background: rgba(46, 168, 142, 0.20); color: var(--teal); }
+.md-card .badge.unknown  { background: var(--card-hi); color: var(--subtext); }
+.md-card .badge-row { display: inline-flex; gap: 6px; flex-wrap: wrap; }
 
 /* ── Theory / Methods ──────────────────────────────────── */
 .theory-grid {

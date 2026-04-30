@@ -107,7 +107,13 @@ def find_fes(track: str, support: str | None, pair: str, size: int, comp: str) -
 GIF_META_RE = re.compile(r"^([a-z]+)(\d+)(?:_(\w+))?(?:_(uma|pet|sevennet|mace))?\.gif$", re.I)
 
 def parse_gif_name(name: str) -> dict:
-    """coni13_gas_uma.gif → {pair: 'CoNi', size: 13, support: 'gas', mlip: 'uma'}"""
+    """coni13_gas_uma.gif → {pair, size, substrate, constraint, mlip}.
+
+    substrate ∈ {gas, graphene, Al2O3, unknown}
+    constraint ∈ {fix, freetop}  — 'fix' = whole slab fixed (default),
+                                   'freetop' = only the top layer relaxed.
+    Legacy 'sup'-only filenames have ambiguous substrate → marked 'unknown'.
+    """
     base = (name[:-4] if name.lower().endswith(".gif") else name).lower()
     bits = base.split("_")
     if not bits:
@@ -119,23 +125,31 @@ def parse_gif_name(name: str) -> dict:
     if m:
         pair_lc = m.group(1)
         size = int(m.group(2))
-        # capitalize like "AuCu" — split into 2 elements
         if len(pair_lc) >= 4:
             pair = pair_lc[:2].title() + pair_lc[2:].title()
         else:
             pair = pair_lc.title()
     rest = bits[1:]
-    support = "gas"
+
+    sub_map  = {"gas": "gas", "graphene": "graphene", "al2o3": "Al2O3"}
+    mlip_set = {"uma", "pet", "sevennet", "mace"}
+    substrate  = None
+    constraint = "fix"
     mlip = None
-    sup_keys = {"gas", "sup", "graphene", "al2o3", "freetop"}
-    mlip_keys = {"uma", "pet", "sevennet", "mace"}
     for r in rest:
         rl = r.lower()
-        if rl in sup_keys:
-            support = "Al2O3" if rl == "al2o3" else rl
-        elif rl in mlip_keys:
-            mlip = rl
-    return {"pair": pair, "size": size, "support": support, "mlip": mlip}
+        if rl in sub_map:        substrate  = sub_map[rl]
+        elif rl == "freetop":    constraint = "freetop"
+        elif rl == "fix":        constraint = "fix"
+        elif rl == "sup":        substrate  = substrate or "unknown"
+        elif rl in mlip_set:     mlip       = rl
+    if substrate is None:
+        substrate = "gas"  # default for older filenames lacking a token
+    return {
+        "pair": pair, "size": size,
+        "substrate": substrate, "constraint": constraint,
+        "mlip": mlip,
+    }
 
 
 # ─── main ──────────────────────────────────────────────────────────────────

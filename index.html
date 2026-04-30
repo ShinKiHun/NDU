@@ -68,13 +68,12 @@
     <section class="page page--active" id="page-home">
 
       <div class="hero">
-        <span class="acronym">NANOCLUSTER · DIGITAL · UNIVERSE</span>
-        <h1>Mapping bimetallic<br>cluster phase space</h1>
+        <span class="acronym">N · D · U</span>
+        <h1>Nanocluster<br>Digital Universe</h1>
         <p class="lead">
-          NDU charts the energy landscape of bimetallic nanoclusters using metadynamics-driven
-          MLIP simulations. Composition × size × support is swept end-to-end, and each system
-          is reduced to a single number: <b style="color:var(--accent)">energy above the convex hull</b> —
-          the thermodynamic distance to the most stable mixture.
+          Mapping the energy landscape of bimetallic nanoclusters with metadynamics-driven MLIP
+          simulations — composition × size × support swept end-to-end, each system reduced to
+          its <b style="color:var(--accent)">energy above the convex hull</b>.
         </p>
         <div class="hero-stats" id="hero-stats"></div>
 
@@ -218,7 +217,19 @@
           <span class="tag">metaMD · animation</span>
           <span class="desc">Cluster motion on the support, biased along the same SOAP-derived CVs used for the gas-phase study.</span>
         </div>
-        <div class="md-filters" id="md-sup-filters"></div>
+        <div class="controls">
+          <label>Substrate</label>
+          <span class="seg" id="md-sup-sub-seg">
+            <button class="on" data-v="graphene">graphene</button>
+            <button data-v="Al2O3">α-Al<sub>2</sub>O<sub>3</sub></button>
+          </span>
+          <label style="margin-left:14px">Constraint</label>
+          <span class="seg" id="md-sup-cons-seg">
+            <button class="on" data-v="all">all</button>
+            <button data-v="fix">fix (slab frozen)</button>
+            <button data-v="freetop">freetop (top layer relaxed)</button>
+          </span>
+        </div>
         <div class="md-grid" id="md-sup-grid"></div>
       </section>
 

@@ -32,14 +32,15 @@ let DATA = null;
 
 const VALID_PAGES = ["home", "gas", "supported", "methods", "refs"];
 const STATE = {
-  page:           pageFromHash(),
-  eah_pair:       null,
-  eah_metric:     "E_form",
-  eah_sizes:      null,
-  fes_gas_pair:   null,
-  fes_sup_track:  "graphene",
-  fes_sup_pair:   null,
-  md_sup_filter:  "graphene",
+  page:             pageFromHash(),
+  eah_pair:         null,
+  eah_metric:       "E_form",
+  eah_sizes:        null,
+  fes_gas_pair:     null,
+  fes_sup_track:    "graphene",
+  fes_sup_pair:     null,
+  md_sup_substrate: "graphene",
+  md_sup_constraint:"all",
 };
 
 // ─── boot ────────────────────────────────────────────────────────────────
@@ -350,21 +351,38 @@ function renderEah() {
     if (metric !== "EAH") {
       const ptsM = sd.comps.map((c, i) => ({ x: c.x, y: ys[i], raw: c }));
       const hullM = lowerHull(ptsM).map(i => ptsM[i]);
+      // hull line — thicker, solid, slightly translucent so the data points pop
       traces.push({
         type: "scatter", mode: "lines", name: `${sz} hull`,
         x: hullM.map(p => p.x),
         y: hullM.map(p => p.y),
-        line: { color: color, width: 1.5, dash: "dash" },
+        line: { color: color, width: 2.2, dash: "solid", shape: "linear" },
+        opacity: 0.55,
         showlegend: false, hoverinfo: "skip",
       });
     }
 
+    // soft halo behind each marker so the points read as glowing nodes, not Excel dots
+    traces.push({
+      type: "scatter", mode: "markers", name: `n=${sz} halo`,
+      x: xs, y: ys,
+      marker: { color: color, size: 18, opacity: 0.18, line: { width: 0 } },
+      hoverinfo: "skip", showlegend: false,
+    });
+
     traces.push({
       type: "scatter", mode: "lines+markers", name: `n=${sz}`,
       x: xs, y: ys,
-      error_y: { type: "data", array: errs, color: color, thickness: 0.6, visible: true, width: 2 },
-      line: { color: color, width: 1.5 },
-      marker: { color: color, size: 8, line: { color: PALETTE.border, width: 0.5 } },
+      error_y: {
+        type: "data", array: errs, color: color,
+        thickness: 1.0, opacity: 0.45, visible: true, width: 3,
+      },
+      line: { color: color, width: 2, shape: "spline", smoothing: 0.6 },
+      marker: {
+        color: color, size: 10,
+        line: { color: PALETTE.bg, width: 1.6 },
+        symbol: "circle",
+      },
       hovertemplate: "%{customdata}<extra></extra>",
       customdata: hovers,
     });
@@ -373,7 +391,7 @@ function renderEah() {
   if (metric !== "E_form") {
     traces.push({
       type: "scatter", mode: "lines",
-      x: [0, 1], y: [0, 0],
+      x: [-0.04, 1.04], y: [0, 0],
       line: { color: PALETTE.border, width: 1, dash: "dot" },
       showlegend: false, hoverinfo: "skip",
     });
@@ -386,15 +404,38 @@ function renderEah() {
 
   Plotly.react("eah-plot", traces, plotlyLayout({
     height: 600,
+    paper_bgcolor: "rgba(0,0,0,0)",   // let the .panel card show its own bg
+    plot_bgcolor:  "rgba(0,0,0,0)",
     xaxis: {
-      title: `composition x<sub>${a}</sub>`,
-      range: [-0.04, 1.04], gridcolor: PALETTE.grid, color: PALETTE.text,
+      title: { text: `composition  x<sub>${a}</sub>`,
+               font: { size: 13.5, color: PALETTE.subtext } },
+      range: [-0.04, 1.04],
+      gridcolor: PALETTE.grid, gridwidth: 0.6,
+      zerolinecolor: PALETTE.border, zerolinewidth: 1,
+      linecolor: PALETTE.border, tickcolor: PALETTE.border,
+      tickfont: { color: PALETTE.text, size: 11.5 },
+      mirror: false, ticks: "outside", ticklen: 4,
     },
     yaxis: {
-      title: yLabel, gridcolor: PALETTE.grid, color: PALETTE.text,
+      title: { text: yLabel, font: { size: 13.5, color: PALETTE.subtext } },
+      gridcolor: PALETTE.grid, gridwidth: 0.6,
+      zerolinecolor: PALETTE.border, zerolinewidth: 1,
+      linecolor: PALETTE.border, tickcolor: PALETTE.border,
+      tickfont: { color: PALETTE.text, size: 11.5 },
+      ticks: "outside", ticklen: 4,
     },
-    legend: { x: 1.02, y: 1, font: { size: 11 } },
-    margin: { l: 80, r: 130, t: 20, b: 60 },
+    legend: {
+      x: 0.985, y: 0.985, xanchor: "right", yanchor: "top",
+      bgcolor: PALETTE.card, bordercolor: PALETTE.border, borderwidth: 1,
+      font: { size: 11.5, color: PALETTE.text },
+      itemsizing: "constant",
+    },
+    margin: { l: 78, r: 28, t: 22, b: 58 },
+    hoverlabel: {
+      bgcolor: PALETTE.bg, bordercolor: PALETTE.accent,
+      font: { color: PALETTE.text, family: "JetBrains Mono, monospace", size: 12 },
+      align: "left",
+    },
   }), PLOTLY_CFG);
 
   const bestList = document.querySelector("#eah-best-list");
@@ -559,31 +600,28 @@ function initMdGas() { renderMdGas(); }
 function renderMdGas() {
   const grid = document.querySelector("#md-gas-grid");
   if (!grid) return;
-  const items = DATA.gifs.filter(g => g.support === "gas");
+  const items = DATA.gifs.filter(g => g.substrate === "gas");
   renderMdGrid(grid, items);
 }
 
 // ─── 3b. MD — Supported page ──────────────────────────────────────────────
 function initMdSup() {
-  const fbox = document.querySelector("#md-sup-filters");
-  if (!fbox) return;
-  const observed = [...new Set(DATA.gifs.map(g => g.support).filter(t => t && t !== "gas"))];
-  const canonical = ["graphene", "Al2O3", "freetop", "sup"];
-  const ordered = canonical.filter(t => observed.includes(t))
-    .concat(observed.filter(t => !canonical.includes(t)));
-  const tags = [...ordered, "all"];
-  if (!tags.includes(STATE.md_sup_filter)) STATE.md_sup_filter = tags[0];
-
-  fbox.innerHTML = tags.map(t => {
-    const label = t === "Al2O3" ? "Al₂O₃" : t;
-    const cls = t === STATE.md_sup_filter ? ' class="on"' : "";
-    return `<button data-v="${t}"${cls}>${label}</button>`;
-  }).join("");
-  fbox.querySelectorAll("button").forEach(b => {
+  const subSeg  = document.querySelector("#md-sup-sub-seg");
+  const consSeg = document.querySelector("#md-sup-cons-seg");
+  if (!subSeg || !consSeg) return;
+  subSeg.querySelectorAll("button").forEach(b => {
     b.addEventListener("click", () => {
-      fbox.querySelectorAll("button").forEach(x => x.classList.remove("on"));
+      subSeg.querySelectorAll("button").forEach(x => x.classList.remove("on"));
       b.classList.add("on");
-      STATE.md_sup_filter = b.dataset.v;
+      STATE.md_sup_substrate = b.dataset.v;
+      renderMdSup();
+    });
+  });
+  consSeg.querySelectorAll("button").forEach(b => {
+    b.addEventListener("click", () => {
+      consSeg.querySelectorAll("button").forEach(x => x.classList.remove("on"));
+      b.classList.add("on");
+      STATE.md_sup_constraint = b.dataset.v;
       renderMdSup();
     });
   });
@@ -592,12 +630,11 @@ function initMdSup() {
 function renderMdSup() {
   const grid = document.querySelector("#md-sup-grid");
   if (!grid) return;
-  const filt = STATE.md_sup_filter;
-  const items = DATA.gifs.filter(g => {
-    if (g.support === "gas") return false;
-    if (filt === "all") return true;
-    return g.support === filt;
-  });
+  const sub  = STATE.md_sup_substrate;
+  const cons = STATE.md_sup_constraint;
+  const items = DATA.gifs.filter(g =>
+    g.substrate === sub && (cons === "all" || g.constraint === cons)
+  );
   renderMdGrid(grid, items);
 }
 
@@ -610,14 +647,19 @@ function renderMdGrid(grid, items) {
   grid.innerHTML = items.map(g => {
     const pair = g.pair || "?";
     const [a, b] = pairElems(pair);
-    const support = g.support || "—";
-    const supLabel = support === "Al2O3" ? "Al₂O₃" : support;
-    const supCls = (support || "").toLowerCase();
+    const sub = g.substrate || "—";
+    const subLabel = sub === "Al2O3" ? "Al₂O₃" : sub;
+    const subCls = sub.toLowerCase();
+    const consLabel = g.constraint === "freetop" ? "freetop" : "fix";
+    const showCons = sub !== "gas";
     return `<div class="md-card">
       <img src="assets/gif/${g.file}" alt="${pair} ${g.size}" loading="lazy">
       <div class="info">
         <span class="nm">${a}–${b}<sub>${g.size || ""}</sub></span>
-        <span class="badge ${supCls}">${supLabel}</span>
+        <span class="badge-row">
+          <span class="badge ${subCls}">${subLabel}</span>
+          ${showCons ? `<span class="badge ${consLabel}">${consLabel}</span>` : ""}
+        </span>
       </div>
     </div>`;
   }).join("");
